@@ -1,175 +1,186 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MILI</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MILI</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
 
-    /* Pantalla de login */
-    #loginScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 9999;
-      background: linear-gradient(135deg,#0d0221,#3a0ca3,#7209b7,#f72585);
-    }
+/* 🔹 Pantalla de login */
+#loginScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 9999;
+  background: linear-gradient(135deg,#0d0221,#3a0ca3,#7209b7,#f72585);
+}
 
-    #loginScreen::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: url("https://github.com/jgalindoduvan-hue/MILY/blob/main/ChatGPT%20Image%2019%20sept%202025%2C%2010_17_37%20a.m..png?raw=true") no-repeat center;
-      background-size: contain;
-      z-index: -1;
-    }
+#loginScreen::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: url("https://github.com/jgalindoduvan-hue/MILY/blob/main/ChatGPT%20Image%2019%20sept%202025%2C%2010_17_37%20a.m..png?raw=true") no-repeat center;
+  background-size: contain;
+  z-index: -1;
+}
 
-    #loginBox {
-      position: absolute;
-      top: 180px;
-      left: 220px;
-      background: rgba(0,0,0,0.65);
-      padding: 15px;
-      border-radius: 12px;
-      text-align: center;
-      width: 260px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.6);
-    }
+/* 🔹 Caja de login fija en PC */
+#loginBox {
+  position: absolute;
+  top: 180px; /* posición original en PC */
+  left: 220px;
+  background: rgba(0,0,0,0.65);
+  padding: 15px;
+  border-radius: 12px;
+  text-align: center;
+  width: 260px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
+}
 
-    #loginBox h2 {
-      color: white;
-      margin-bottom: 15px;
-    }
+#loginBox h2 { color: white; margin-bottom: 15px; }
+#loginBox input {
+  width: 90%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 5px;
+}
+#loginBox button {
+  width: 45%;
+  max-width: 140px;
+  background: #ff3399;
+  border: none;
+  padding: 10px 0;
+  color: white;
+  margin: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+#loginBox button:hover { background: #e60073; }
+#loginBox .toggle { color:#ff99cc; cursor:pointer; }
+#error { color:red; display:none; }
 
-    #loginBox input {
-      width: 90%;
-      padding: 10px;
-      margin: 8px 0;
-      border: none;
-      border-radius: 5px;
-    }
+#mainContent { display:none; }
 
-    #loginBox button {
-      background: #ff3399;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      margin: 5px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+/* 🔹 Header y Nav */
+header {
+  background: linear-gradient(90deg,#ff66cc,#ff3399);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
-    #loginBox button:hover {
-      background: #e60073;
-    }
+header h1 { margin:0; font-size:1.5em; font-weight:bold; letter-spacing:2px; }
 
-    #error { color: red; display: none; }
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
 
-    #mainContent { display: none; }
+/* 🔹 Iconos nav grandes en PC */
+nav img {
+  height: 80px; /* tamaño grande en PC */
+  max-height: 90px;
+  cursor: pointer;
+  display: inline-block;
+  transition: transform 180ms ease, filter 180ms ease;
+  will-change: transform, filter;
+  animation: neonPulse 2.2s infinite alternate;
+}
 
-    /* Header y nav */
-    header {
-      background: linear-gradient(90deg, #ff66cc, #ff3399);
-      color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+nav img:hover {
+  transform: scale(1.08) rotate(-1.5deg);
+  animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
+}
 
-    header h1 { margin: 0; font-size: 1.5em; font-weight: bold; letter-spacing: 2px; }
+@keyframes neonPulse {
+  0% { filter: drop-shadow(0 0 2px #ff4da6) drop-shadow(0 0 4px #ffb3d6); }
+  50% { filter: drop-shadow(0 0 4px #ff66cc) drop-shadow(0 0 8px #ff99cc); }
+  100% { filter: drop-shadow(0 0 6px #ff1a8c) drop-shadow(0 0 10px #ff8fcf); }
+}
 
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
+@keyframes shake {
+  0% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
+  25% { transform: scale(1.08) translate(1px,-1px) rotate(-2.2deg); }
+  50% { transform: scale(1.08) translate(-1px,2px) rotate(-0.6deg); }
+  75% { transform: scale(1.08) translate(2px,1px) rotate(-1.8deg); }
+  100% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
+}
 
-    nav img {
-      height: 80px;
-      cursor: pointer;
-      display: inline-block;
-      background: transparent;
-      transition: transform 180ms ease, filter 180ms ease;
-      will-change: transform, filter;
-      animation: neonPulse 2.2s infinite alternate;
-    }
+/* 🔹 Layout principal */
+main { display:grid; grid-template-columns:2fr 1fr; gap:20px; padding:20px; }
+section, aside {
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+aside { min-height:200px; display:flex; justify-content:center; align-items:center; }
 
-    nav img:hover {
-      transform: scale(1.08) rotate(-1.5deg);
-      animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
-    }
+/* 🔹 Sidebar */
+.sidebar {
+  position: fixed;
+  top: 60%;
+  left: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index:1000;
+}
+.sidebar img {
+  width: 50px;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  animation: neonPulse 2.2s infinite alternate;
+}
+.sidebar img:hover {
+  transform: scale(1.1) rotate(-2deg);
+  animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
+}
 
-    @keyframes neonPulse {
-      0% { filter: drop-shadow(0 0 2px #ff4da6) drop-shadow(0 0 4px #ffb3d6); }
-      50% { filter: drop-shadow(0 0 4px #ff66cc) drop-shadow(0 0 8px #ff99cc); }
-      100% { filter: drop-shadow(0 0 6px #ff1a8c) drop-shadow(0 0 10px #ff8fcf); }
-    }
+/* 🔹 Responsive móviles */
+@media (max-width: 768px) {
+  main { grid-template-columns:1fr; }
+  nav { justify-content:center; gap:8px; }
 
-    @keyframes shake {
-      0% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
-      25% { transform: scale(1.08) translate(1px,-1px) rotate(-2.2deg); }
-      50% { transform: scale(1.08) translate(-1px,2px) rotate(-0.6deg); }
-      75% { transform: scale(1.08) translate(2px,1px) rotate(-1.8deg); }
-      100% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
-    }
+  /* Iconos nav más grandes en móviles */
+  nav img { 
+    height: 12vw; 
+    max-height:70px; 
+    min-height:50px;
+  }
 
-    main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; }
+  .sidebar img { width:40px; }
 
-    section, aside {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    aside { min-height: 200px; display: flex; justify-content: center; align-items: center; }
-
-    .sidebar {
-      position: fixed;
-      top: 60%;
-      left: 10px;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      z-index: 1000;
-    }
-
-    .sidebar img {
-      width: 50px;
-      cursor: pointer;
-      transition: transform 0.2s ease, filter 0.2s ease;
-      animation: neonPulse 2.2s infinite alternate;
-    }
-
-    .sidebar img:hover {
-      transform: scale(1.1) rotate(-2deg);
-      animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
-    }
-
-    @media (max-width: 768px) {
-      main { grid-template-columns: 1fr; }
-      nav { justify-content: center; }
-      nav img { height: 60px; }
-      .sidebar img { width: 40px; }
-      #loginBox { left: 50px; top: 140px; }
-    }
-  </style>
+  /* Login responsive sin mover posición */
+  #loginBox {
+    width: 220px;
+    padding: 12px;
+    transform: scale(0.9);
+  }
+  #loginBox input, #loginBox button { width: 90%; }
+}
+</style>
 </head>
 <body>
 
+<!-- Login -->
 <div id="loginScreen">
   <div id="loginBox">
     <h2 id="formTitle">Iniciar Sesión</h2>
@@ -178,11 +189,12 @@
     <input type="text" id="newUsername" placeholder="Nombre de usuario" style="display:none;">
     <button id="loginBtn">Iniciar Sesión</button>
     <button id="registerBtn" style="display:none;">Registrar</button>
-    <p class="toggle" id="toggleForm" style="color:#ff99cc; cursor:pointer;">¿No tienes cuenta? Regístrate aquí</p>
+    <p class="toggle" id="toggleForm">¿No tienes cuenta? Regístrate aquí</p>
     <p id="error">Usuario o contraseña incorrectos</p>
   </div>
 </div>
 
+<!-- Contenido Principal -->
 <div id="mainContent">
   <header>
     <h1>✨ MILI ✨</h1>
@@ -190,20 +202,14 @@
       <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INICIO.png?raw=true" alt="Inicio" onclick="showSection('home')">
       <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/SORTEOS-removebg-preview.png?raw=true" alt="Sorteos" onclick="showSection('sorteo')">
       <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/MOMENTOS-removebg-preview%20(1).png?raw=true" alt="Momento de Mili" onclick="showSection('mili')">
-      <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer; height:80px;">
+      <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer;">
     </nav>
   </header>
 
   <div class="sidebar">
-    <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/INSTAGRAM.png?raw=true" alt="Instagram">
-    </a>
-    <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/TIK%20TOK.png?raw=true" alt="TikTok">
-    </a>
-    <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/WHAT.png?raw=true" alt="WhatsApp">
-    </a>
+    <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank"><img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/INSTAGRAM.png?raw=true" alt="Instagram"></a>
+    <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank"><img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/TIK%20TOK.png?raw=true" alt="TikTok"></a>
+    <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank"><img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/WHAT.png?raw=true" alt="WhatsApp"></a>
   </div>
 
   <main>
@@ -242,7 +248,6 @@ const formTitle = document.getElementById("formTitle");
 const newUsernameInput = document.getElementById("newUsername");
 let isRegister = false;
 
-// Alternar login / registro
 toggleForm.addEventListener("click", () => {
   isRegister = !isRegister;
   if(isRegister){
@@ -260,7 +265,6 @@ toggleForm.addEventListener("click", () => {
   }
 });
 
-// Login
 loginBtn.addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -274,7 +278,6 @@ loginBtn.addEventListener("click", async () => {
   }
 });
 
-// Registro
 registerBtn.addEventListener("click", async () => {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -293,10 +296,8 @@ registerBtn.addEventListener("click", async () => {
   } catch(err){ console.error(err); alert("Error: "+err.message);}
 });
 
-// Persistencia de sesión
 onAuthStateChanged(auth, user => { if(user) showUserContent(user.uid); });
 
-// Mostrar contenido
 function showUserContent(uid){
   getDoc(doc(db,"users",uid)).then(snap => {
     let role="user", username=uid;
@@ -308,20 +309,24 @@ function showUserContent(uid){
   });
 }
 
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-  await signOut(auth);
-  document.getElementById("mainContent").style.display="none";
-  document.getElementById("loginScreen").style.display="block";
+// 🔹 Cerrar sesión
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  if(confirm("¿Deseas cerrar sesión?")){
+    await signOut(auth);
+    document.getElementById("mainContent").style.display="none";
+    document.getElementById("loginScreen").style.display="block";
+  }
 });
 
-// Cambiar secciones
+// 🔹 Cambiar secciones
 window.showSection = function(section){
-  const content=document.getElementById("contentArea");
+  const content = document.getElementById("contentArea");
   if(section==="home") content.innerHTML="<h2>Inicio</h2><p>Bienvenido al sistema de sorteo 🎉</p>";
   else if(section==="sorteo") content.innerHTML="<h2>Sorteos</h2><p>Aquí estará la ruleta del sorteo.</p>";
   else if(section==="mili") content.innerHTML="<h2>Momento de Mili</h2><p>Sección especial de Mili 💜</p>";
-}
+};
 </script>
 </body>
 </html>
+
+ 
