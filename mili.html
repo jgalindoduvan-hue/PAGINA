@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -36,13 +36,13 @@
     /* 🔹 Caja de login */
     #loginBox {
       position: absolute;
-      top: 180px;   /* debajo del logo */
-      left: 220px;  /* centrado bajo el logo */
+      top: 180px;
+      left: 220px;
       background: rgba(0, 0, 0, 0.65);
       padding: 15px;
       border-radius: 12px;
       text-align: center;
-      width: 240px;
+      width: 260px;
       box-shadow: 0 0 15px rgba(0,0,0,0.6);
     }
 
@@ -192,11 +192,13 @@
   <!-- 🔹 Pantalla de login -->
   <div id="loginScreen">
     <div id="loginBox">
-      <h2>Iniciar Sesión</h2>
-      <input type="text" id="username" placeholder="Usuario">
+      <h2 id="formTitle">Iniciar Sesión</h2>
+      <input type="email" id="email" placeholder="Correo electrónico">
       <input type="password" id="password" placeholder="Contraseña">
-      <button onclick="login()">Administrador</button>
-      <button onclick="guestLogin()">Invitado</button>
+      <input type="text" id="newUsername" placeholder="Nombre de usuario" style="display:none;">
+      <button id="loginBtn">Iniciar Sesión</button>
+      <button id="registerBtn" style="display:none;">Registrar</button>
+      <p class="toggle" id="toggleForm" style="color:#ff99cc; cursor:pointer;">¿No tienes cuenta? Regístrate aquí</p>
       <p id="error">Usuario o contraseña incorrectos</p>
     </div>
   </div>
@@ -228,8 +230,8 @@
     <main>
       <section id="contentArea">
         <h2>Bienvenido</h2>
+        <p id="welcomeMsg"></p>
         <p id="roleMsg"></p>
-        <p>Aquí irá el contenido dinámico según el menú.</p>
       </section>
       <aside>
         🎥 Aquí irá el video o animación
@@ -237,28 +239,118 @@
     </main>
   </div>
 
-  <script>
-    function login() {
-      const user = document.getElementById("username").value;
-      const pass = document.getElementById("password").value;
-      const error = document.getElementById("error");
+  <!-- 🔹 Firebase + Login/Register -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-      if (user === "MILI" && pass === "123") {
+    // Configuración Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBmsNMCASkrkNNgRndh8avKSVlfvUmnGAE",
+      authDomain: "mili-de743.firebaseapp.com",
+      projectId: "mili-de743",
+      storageBucket: "mili-de743.firebasestorage.app",
+      messagingSenderId: "662097238480",
+      appId: "1:662097238480:web:a66880f01638aa5722c1d5",
+      measurementId: "G-N3P79PWKZ2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const loginBtn = document.getElementById("loginBtn");
+    const registerBtn = document.getElementById("registerBtn");
+    const toggleForm = document.getElementById("toggleForm");
+    const formTitle = document.getElementById("formTitle");
+    const newUsernameInput = document.getElementById("newUsername");
+
+    let isRegister = false;
+
+    // Alternar Login / Registro
+    toggleForm.addEventListener("click", () => {
+      isRegister = !isRegister;
+      if (isRegister) {
+        formTitle.innerText = "Registrar Usuario";
+        newUsernameInput.style.display = "block";
+        loginBtn.style.display = "none";
+        registerBtn.style.display = "block";
+        toggleForm.innerText = "¿Ya tienes cuenta? Inicia sesión aquí";
+      } else {
+        formTitle.innerText = "Iniciar Sesión";
+        newUsernameInput.style.display = "none";
+        loginBtn.style.display = "block";
+        registerBtn.style.display = "none";
+        toggleForm.innerText = "¿No tienes cuenta? Regístrate aquí";
+      }
+    });
+
+    // Iniciar sesión
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const error = document.getElementById("error");
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
+
+        const ref = doc(db, "users", uid);
+        const snap = await getDoc(ref);
+
+        let role = "user";
+        let username = email;
+        if (snap.exists()) {
+          role = snap.data().role;
+          username = snap.data().username || email;
+        }
+
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("mainContent").style.display = "block";
-        document.getElementById("roleMsg").innerText = "Has ingresado como Administrador ✅";
-      } else {
+        document.getElementById("welcomeMsg").innerText = "Hola, " + username + " 👋";
+        document.getElementById("roleMsg").innerText = role === "admin"
+          ? "Has ingresado como Administrador ✅"
+          : "Has ingresado como Usuario 👤";
+      } catch (err) {
+        console.error(err);
         error.style.display = "block";
       }
-    }
+    });
 
-    function guestLogin() {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("mainContent").style.display = "block";
-      document.getElementById("roleMsg").innerText = "Has ingresado como Invitado 👤";
-    }
+    // Registrar
+    registerBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const username = newUsernameInput.value;
+      if (!username) {
+        alert("Por favor ingresa un nombre de usuario");
+        return;
+      }
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCredential.user.uid;
 
-    function showSection(section) {
+        await setDoc(doc(db, "users", uid), {
+          email: email,
+          username: username,
+          role: "user",
+          createdAt: new Date()
+        });
+
+        alert("Usuario registrado ✅ Ahora inicia sesión");
+        formTitle.innerText = "Iniciar Sesión";
+        newUsernameInput.style.display = "none";
+        loginBtn.style.display = "block";
+        registerBtn.style.display = "none";
+        toggleForm.innerText = "¿No tienes cuenta? Regístrate aquí";
+      } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+      }
+    });
+
+    // Cambiar secciones
+    window.showSection = function(section) {
       const content = document.getElementById("contentArea");
       if (section === "home") {
         content.innerHTML = "<h2>Inicio</h2><p>Bienvenido al sistema de sorteo 🎉</p>";
