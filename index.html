@@ -42,7 +42,7 @@
     .calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
     .monthTitle{font-weight:700;font-size:18px}
     .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
-    .calCell{min-height:72px;padding:6px;border-radius:8px;background:#fafafa;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:transform .08s}
+    .calCell{min-height:72px;padding:6px;border-radius:8px;background:#fafafa;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:transform .08s;overflow:hidden}
     .calCell:hover{transform:translateY(-3px)}
     .calCell .dayNum{font-weight:700;opacity:.9}
     .calCell.event{background:linear-gradient(180deg,#fff0fb,#fff)}
@@ -73,8 +73,30 @@
     .btn-subscriber{background:#009688;color:#fff}
     .btn-remove-subscriber{background:#ff8a80;color:#000}
 
-    /* mobile */
-    @media(max-width:800px){.layout{grid-template-columns:1fr;}.sidebar{display:none} #loginBox{left:20px;top:90px} .calGrid{grid-template-columns:repeat(3,1fr)}}
+    /* ===== Responsive tweaks: make calendar smaller and readable on phones ===== */
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      aside#calendarAside { order: 2; }
+      section#homeSection { order: 1; }
+      .calGrid { gap: 5px; }
+      .calCell { min-height:60px; padding:5px; }
+    }
+
+    @media (max-width: 600px) {
+      /* Keep 7 columns but smaller cells so calendar still looks like a month */
+      .calGrid { grid-template-columns: repeat(7, 1fr); gap:4px; }
+      .calCell { min-height:46px; padding:4px; }
+      .calCell .dayNum { font-size:12px; }
+      .monthTitle { font-size:16px; }
+      .calControls button { padding:6px 8px; font-size:13px; }
+      #loginBox { left:12px; top:120px; width:260px; }
+    }
+
+    @media (max-width: 420px) {
+      .calCell { min-height:42px; padding:3px; }
+      .calCell .dayNum { font-size:11px; }
+      nav img { height:58px; }
+    }
   </style>
 </head>
 <body>
@@ -195,7 +217,7 @@
       getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // ====== TU CONFIG DE FIREBASE (la que compartiste) ======
+    // ====== TU CONFIG DE FIREBASE ======
     const firebaseConfig = {
       apiKey: "AIzaSyBmsNMCASkrkNNgRndh8avKSVlfvUmnGAE",
       authDomain: "mili-de743.firebaseapp.com",
@@ -603,4 +625,5 @@
   </script>
 </body>
 </html>
+
 
