@@ -46,9 +46,8 @@
 
     .mobileMenu {
       position: fixed;
-      top: 50%;
+      top: 60%; /* más abajo que el centro */
       left: 10px;
-      transform: translateY(-50%);
       display: none;
       flex-direction: column;
       gap: 14px;
@@ -59,7 +58,7 @@
 }
     .mobileMenu img {
       width:56px;
-      height:56px;
+      height:auto; /* mantiene proporción */
       border-radius:8px;
       cursor:pointer;
     }
@@ -137,9 +136,8 @@
       #loginBox { left:12px; top:120px; width:260px; }
       .mobileMenu {
       position: fixed;
-      top: 50%;
+      top: 60%; /* más abajo que el centro */
       left: 10px;
-      transform: translateY(-50%);
       display: none;
       flex-direction: column;
       gap: 14px;
@@ -150,7 +148,7 @@
 }
       .mobileMenu img {
       width:56px;
-      height:56px;
+      height:auto; /* mantiene proporción */
       border-radius:8px;
       cursor:pointer;
     }
@@ -176,10 +174,11 @@ nav img:hover {
 
 .sidebar img,
 .mobileMenu img {
-  border-radius:8px;
-  transition:transform .18s,filter .18s;
-  filter:drop-shadow(0 0 5px #ff66cc);
-}
+      width:56px;
+      height:auto; /* mantiene proporción */
+      border-radius:8px;
+      cursor:pointer;
+    }
 .sidebar img:hover,
 .mobileMenu img:hover {
   transform:scale(1.12) rotate(-2deg);
@@ -192,6 +191,63 @@ nav img:hover {
   50%{transform:translate(-1px,2px) rotate(1deg)}
   75%{transform:translate(2px,1px) rotate(-1deg)}
   100%{transform:translate(0) rotate(0)}
+}
+
+
+/* Sidebar redes (desktop) */
+.sidebar {
+  position: fixed;
+  top: 50%; /* centrado vertical */
+  left: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 30;
+}
+
+.sidebar img,
+.mobileMenu img {
+  width: 58px;
+  height: auto; /* mantiene proporción */
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform .2s, filter .2s;
+  filter: drop-shadow(0 0 6px #ff33cc) drop-shadow(0 0 12px #ff33cc);
+}
+
+.sidebar img:hover,
+.mobileMenu img:hover {
+  transform: scale(1.15) rotate(-2deg);
+  filter: drop-shadow(0 0 10px #ff33cc) drop-shadow(0 0 20px #ff66ff);
+}
+
+/* Menú móvil */
+.mobileMenu {
+  position: fixed;
+  top: 50%;   /* centrado vertical */
+  left: 12px; /* pegado a la pared */
+  display: none;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 2000;
+  transform: translateY(-50%);
+}
+.mobileMenu.open {
+  display: flex;
+}
+
+
+@media (max-width: 900px) {
+  .sidebar {
+    display: none; /* ocultar en móviles */
+  }
+  .mobileMenu {
+    display: none; /* oculto por defecto */
+  }
+  .mobileMenu.open {
+    display: flex; /* se abre al tocar hamburguesa */
+  }
 }
 
 </style>
@@ -222,7 +278,7 @@ nav img:hover {
         <div class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" title="Menú" tabindex="0">
           <span></span><span></span><span></span>
         </div>
-        <h1> MILI <3 </h1>
+        <h1> MILI </h1>
       </div>
 
       <nav>
