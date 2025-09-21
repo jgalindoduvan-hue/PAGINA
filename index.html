@@ -27,13 +27,30 @@
     nav img:hover{transform:scale(1.06) rotate(-1.5deg);animation:shake .36s}
     @keyframes shake{0%{transform:translate(0) rotate(0)}25%{transform:translate(1px,-1px) rotate(-2deg)}50%{transform:translate(-1px,2px) rotate(1deg)}75%{transform:translate(2px,1px) rotate(-1deg)}100%{transform:translate(0) rotate(0)}}
 
+    /* Hamburger (mobile) */
+    .hamburger { display: none; width: 34px; height: 28px; flex-direction: column; justify-content: space-between; cursor: pointer; margin-right: 8px; }
+    .hamburger span { display:block; height:4px; background:white; border-radius:3px; }
+
+    /* Mobile menu (sliding stickers) */
+    .mobileOverlay { position: fixed; inset:0; background: rgba(0,0,0,0); transition: background 0.25s ease; pointer-events: none; z-index:120; }
+    .mobileOverlay.open { background: rgba(0,0,0,0.4); pointer-events: auto; }
+
+    .mobileMenu {
+      position: fixed; left: -220px; top: 0; width: 220px; height: 100%;
+      background: #111; padding: 20px; display:flex; flex-direction:column; gap:16px;
+      transition: left 0.28s ease; z-index:130;
+      align-items:flex-start;
+    }
+    .mobileMenu.open { left: 0; }
+    .mobileMenu img { width:52px; border-radius:8px; filter: drop-shadow(0 0 5px #ff66cc); cursor:pointer; }
+
     /* ===== Layout principal ===== */
     #mainContent{display:none;min-height:100vh}
     .layout{display:grid;grid-template-columns:2fr 1fr;gap:20px;padding:20px}
     section,aside{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
     aside{min-height:260px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
 
-    /* ===== Sidebar redes ===== */
+    /* ===== Sidebar redes (desktop) ===== */
     .sidebar{position:fixed;left:10px;top:60%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30}
     .sidebar img{width:50px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
     .sidebar img:hover{transform:scale(1.12) rotate(-2deg);filter:drop-shadow(0 0 10px #ff66cc)}
@@ -80,6 +97,10 @@
       section#homeSection { order: 1; }
       .calGrid { gap: 5px; }
       .calCell { min-height:60px; padding:5px; }
+      .hamburger { display:flex; }
+      nav { gap:6px; }
+      /* hide desktop sidebar on small screens */
+      .sidebar { display: none; }
     }
 
     @media (max-width: 600px) {
@@ -90,6 +111,9 @@
       .monthTitle { font-size:16px; }
       .calControls button { padding:6px 8px; font-size:13px; }
       #loginBox { left:12px; top:120px; width:260px; }
+      .mobileMenu { width:200px; left:-200px; }
+      .mobileMenu.open { left:0; }
+      .mobileMenu img { width:46px; }
     }
 
     @media (max-width: 420px) {
@@ -120,7 +144,16 @@
   <!-- MAIN CONTENT -->
   <div id="mainContent">
     <header>
-      <h1>✨ MILI ✨</h1>
+      <div style="display:flex;align-items:center;">
+        <!-- Hamburger (visible on small screens) -->
+        <div id="socialHandle" class="socialHandle" role="button" aria-label="Abrir redes" tabindex="0">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+        <h1>✨ MILI ✨</h1>
+      </div>
+
       <nav>
         <img id="btnHome" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INICIO.png" alt="Inicio" title="Inicio">
         <img id="btnSorteo" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/SORTEOS-removebg-preview.png" alt="Sorteos" title="Sorteos">
@@ -131,7 +164,15 @@
       </nav>
     </header>
 
-    <!-- redes sociales -->
+    <!-- mobile overlay + menu -->
+    <div class="mobileOverlay" id="mobileOverlay" aria-hidden="true"></div>
+    <div class="mobileMenu" id="mobileMenu" aria-hidden="true">
+      <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
+      <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
+      <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
+    </div>
+
+    <!-- redes sociales (desktop) -->
     <div class="sidebar" aria-hidden="true">
       <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
       <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
@@ -275,6 +316,10 @@
     const calendarAside = document.getElementById('calendarAside');
     const sorteoSection = document.getElementById('sorteoSection');
     const momentosSection = document.getElementById('momentosSection');
+
+    const socialHandle = document.getElementById('socialHandle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileOverlay = document.getElementById('mobileOverlay');
 
     // state
     let viewDate = new Date();
@@ -622,8 +667,43 @@
 
     // helper: initial render of calendar
     renderCalendar();
+
+    // ---------- Mobile menu logic ----------
+    function openMobileMenu(){
+      mobileMenu.classList.add('open');
+      mobileOverlay.classList.add('open');
+      mobileMenu.setAttribute('aria-hidden','false');
+      mobileOverlay.setAttribute('aria-hidden','false');
+    }
+    function closeMobileMenu(){
+      mobileMenu.classList.remove('open');
+      mobileOverlay.classList.remove('open');
+      mobileMenu.setAttribute('aria-hidden','true');
+      mobileOverlay.setAttribute('aria-hidden','true');
+    }
+    function toggleMobileMenu(){
+      if(mobileMenu.classList.contains('open')) closeMobileMenu();
+      else openMobileMenu();
+    }
+
+    socialHandle.addEventListener('click', () => { mobileMenu.classList.toggle('open'); });
+    hamburgerBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMobileMenu(); }});
+    mobileOverlay.addEventListener('click', closeMobileMenu);
+
+    // close mobile menu when clicking any mobile sticker (improves UX)
+    Array.from(mobileMenu.querySelectorAll('a')).forEach(a => {
+      a.addEventListener('click', ()=> setTimeout(closeMobileMenu, 120));
+    });
+
+    // ensure mobile menu closes when modal opens (avoid stacking)
+    const observer = new MutationObserver(()=> {
+      if(modalWrap.style.display === 'flex') closeMobileMenu();
+    });
+    observer.observe(modalWrap, { attributes: true, attributeFilter: ['style'] });
+
   </script>
 </body>
 </html>
+
 
 
