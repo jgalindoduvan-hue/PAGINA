@@ -45,28 +45,24 @@
 }
 
     .mobileMenu {
-  position: fixed;
-  top: 160px; /* más abajo, fijo debajo del header */
-  left: 10px;
-  gap: 20px;
-  position: absolute;
-  top: 60px; /* debajo de la franja rosada */
-  left: 10px;
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  background: transparent; /* sin fondo */
-  z-index: 130;
-}
+      position: fixed;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 2000;
+    }
     .mobileMenu.open {
   display: flex; /* aparece solo cuando está activo */
 }
     .mobileMenu img {
-  width: 50px;
-  border-radius: 8px;
-  filter: drop-shadow(0 0 5px #ff66cc);
-  cursor: pointer;
-}
+      width:56px;
+      height:56px;
+      border-radius:8px;
+      cursor:pointer;
+    }
 
     /* ===== Layout principal ===== */
     #mainContent{display:none;min-height:100vh}
@@ -140,28 +136,24 @@
       .calControls button { padding:6px 8px; font-size:13px; }
       #loginBox { left:12px; top:120px; width:260px; }
       .mobileMenu {
-  position: fixed;
-  top: 160px; /* más abajo, fijo debajo del header */
-  left: 10px;
-  gap: 20px;
-  position: absolute;
-  top: 60px; /* debajo de la franja rosada */
-  left: 10px;
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-  background: transparent; /* sin fondo */
-  z-index: 130;
-}
+      position: fixed;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 2000;
+    }
       .mobileMenu.open {
   display: flex; /* aparece solo cuando está activo */
 }
       .mobileMenu img {
-  width: 50px;
-  border-radius: 8px;
-  filter: drop-shadow(0 0 5px #ff66cc);
-  cursor: pointer;
-}
+      width:56px;
+      height:56px;
+      border-radius:8px;
+      cursor:pointer;
+    }
     }
 
     @media (max-width: 420px) {
@@ -169,7 +161,40 @@
       .calCell .dayNum { font-size:11px; }
       nav img { height:58px; }
     }
-  </style>
+  
+nav img {
+  height:72px;
+  cursor:pointer;
+  transition:transform .18s,filter .18s;
+  filter:drop-shadow(0 0 3px #ff66cc);
+  border-radius:8px;
+}
+nav img:hover {
+  transform:scale(1.06) rotate(-1.5deg);
+  animation:shake .36s;
+}
+
+.sidebar img,
+.mobileMenu img {
+  border-radius:8px;
+  transition:transform .18s,filter .18s;
+  filter:drop-shadow(0 0 5px #ff66cc);
+}
+.sidebar img:hover,
+.mobileMenu img:hover {
+  transform:scale(1.12) rotate(-2deg);
+  filter:drop-shadow(0 0 10px #ff66cc);
+}
+
+@keyframes shake {
+  0%{transform:translate(0) rotate(0)}
+  25%{transform:translate(1px,-1px) rotate(-2deg)}
+  50%{transform:translate(-1px,2px) rotate(1deg)}
+  75%{transform:translate(2px,1px) rotate(-1deg)}
+  100%{transform:translate(0) rotate(0)}
+}
+
+</style>
 </head>
 <body>
 
@@ -749,5 +774,6 @@
   </script>
 </body>
 </html>
+
 
 
