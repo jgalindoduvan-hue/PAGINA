@@ -1,327 +1,606 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MILI</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MILI — Todo integrado</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+    /* ===== Reset + base ===== */
+    html,body{margin:0;height:100%;font-family:Arial, sans-serif;background:#fff}
+    *{box-sizing:border-box}
 
-    /* Pantalla de login */
-    #loginScreen {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 9999;
-      background: linear-gradient(135deg,#0d0221,#3a0ca3,#7209b7,#f72585);
-    }
+    /* ===== Login screen ===== */
+    #loginScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d0221,#3a0ca3,#7209b7,#f72585);overflow:hidden}
+    #loginScreen::before{content:"";position:absolute;inset:0;background:url("https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/ChatGPT%20Image%2019%20sept%202025%2C%2010_17_37%20a.m..png") no-repeat center;background-size:contain;z-index:0}
+    #loginBox{position:absolute;top:180px;left:220px;background:rgba(0,0,0,.65);padding:15px;border-radius:12px;width:300px;box-shadow:0 0 15px rgba(0,0,0,.6);z-index:2}
+    #loginBox h2{color:#fff;margin:0 0 12px;font-size:20px}
+    #loginBox input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
+    #loginBox button{background:#ff3399;color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer}
+    #loginBox button:hover{background:#e60073}
+    #toggleForm{color:#ff99cc;cursor:pointer;text-align:center;margin-top:8px}
 
-    #loginScreen::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: url("https://github.com/jgalindoduvan-hue/MILY/blob/main/ChatGPT%20Image%2019%20sept%202025%2C%2010_17_37%20a.m..png?raw=true") no-repeat center;
-      background-size: contain;
-      z-index: -1;
-    }
+    /* ===== Header + nav ===== */
+    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30}
+    header h1{margin:0;font-weight:700}
+    nav{display:flex;gap:10px;align-items:center}
+    nav img{height:72px;cursor:pointer;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 3px #ff66cc);border-radius:8px}
+    nav img:hover{transform:scale(1.06) rotate(-1.5deg);animation:shake .36s}
+    @keyframes shake{0%{transform:translate(0) rotate(0)}25%{transform:translate(1px,-1px) rotate(-2deg)}50%{transform:translate(-1px,2px) rotate(1deg)}75%{transform:translate(2px,1px) rotate(-1deg)}100%{transform:translate(0) rotate(0)}}
 
-    #loginBox {
-      position: absolute;
-      top: 180px;
-      left: 220px;
-      background: rgba(0,0,0,0.65);
-      padding: 15px;
-      border-radius: 12px;
-      text-align: center;
-      width: 260px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.6);
-    }
+    /* ===== Layout principal ===== */
+    #mainContent{display:none;min-height:100vh}
+    .layout{display:grid;grid-template-columns:2fr 1fr;gap:20px;padding:20px}
+    section,aside{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+    aside{min-height:260px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
 
-    #loginBox h2 {
-      color: white;
-      margin-bottom: 15px;
-    }
+    /* ===== Sidebar redes ===== */
+    .sidebar{position:fixed;left:10px;top:60%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30}
+    .sidebar img{width:50px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
+    .sidebar img:hover{transform:scale(1.12) rotate(-2deg);filter:drop-shadow(0 0 10px #ff66cc)}
 
-    #loginBox input {
-      width: 90%;
-      padding: 10px;
-      margin: 8px 0;
-      border: none;
-      border-radius: 5px;
-    }
+    /* ===== Calendario ===== */
+    .calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .monthTitle{font-weight:700;font-size:18px}
+    .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+    .calCell{min-height:72px;padding:6px;border-radius:8px;background:#fafafa;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:transform .08s}
+    .calCell:hover{transform:translateY(-3px)}
+    .calCell .dayNum{font-weight:700;opacity:.9}
+    .calCell.event{background:linear-gradient(180deg,#fff0fb,#fff)}
+    .calCell.hasEvent{outline:3px solid rgba(255,51,153,.12);box-shadow:0 0 0 4px rgba(255,102,204,.03) inset}
+    .calCell .eventDot{height:8px;width:8px;border-radius:50%;background:#ff66cc;margin-top:auto}
+    .calControls{display:flex;gap:8px;align-items:center}
 
-    #loginBox button {
-      background: #ff3399;
-      border: none;
-      padding: 10px 20px;
-      color: white;
-      margin: 5px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+    /* boton admin agregar evento */
+    .btn{background:#ff3399;color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.secondary{background:#fff;color:#ff3399;border:2px solid #ff99cc}
 
-    #loginBox button:hover {
-      background: #e60073;
-    }
+    /* ===== Modal (dia events + add) ===== */
+    .modalWrap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:60}
+    .modal{background:#fff;padding:16px;border-radius:10px;width:min(720px,95%);max-height:86vh;overflow:auto}
+    .modal h3{margin:0 0 8px}
+    .modal .eventItem{padding:10px;border-radius:8px;border:1px solid #f0e6f3;margin-bottom:8px}
+    .modal .closeBtn{background:#eee;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+    .modal form{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .modal input[type="text"], .modal textarea, .modal input[type="date"]{padding:8px;border-radius:6px;border:1px solid #ddd}
+    .modal textarea{min-height:90px;resize:vertical}
 
-    #error { color: red; display: none; }
+    /* ===== Users panel (admin) ===== */
+    .usersPanel{display:none;background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06);margin:20px}
+    .userRow{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f0f0f0}
+    .userRow button{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;margin-left:8px}
+    .btn-admin{background:#46c46b;color:#fff}
+    .btn-remove-admin{background:#ffb84d;color:#000}
+    .btn-subscriber{background:#009688;color:#fff}
+    .btn-remove-subscriber{background:#ff8a80;color:#000}
 
-    #mainContent { display: none; }
-
-    /* Header y nav */
-    header {
-      background: linear-gradient(90deg, #ff66cc, #ff3399);
-      color: white;
-      padding: 10px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    header h1 { margin: 0; font-size: 1.5em; font-weight: bold; letter-spacing: 2px; }
-
-    nav {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-
-    nav img {
-      height: 80px;
-      cursor: pointer;
-      display: inline-block;
-      background: transparent;
-      transition: transform 180ms ease, filter 180ms ease;
-      will-change: transform, filter;
-      animation: neonPulse 2.2s infinite alternate;
-    }
-
-    nav img:hover {
-      transform: scale(1.08) rotate(-1.5deg);
-      animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
-    }
-
-    @keyframes neonPulse {
-      0% { filter: drop-shadow(0 0 2px #ff4da6) drop-shadow(0 0 4px #ffb3d6); }
-      50% { filter: drop-shadow(0 0 4px #ff66cc) drop-shadow(0 0 8px #ff99cc); }
-      100% { filter: drop-shadow(0 0 6px #ff1a8c) drop-shadow(0 0 10px #ff8fcf); }
-    }
-
-    @keyframes shake {
-      0% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
-      25% { transform: scale(1.08) translate(1px,-1px) rotate(-2.2deg); }
-      50% { transform: scale(1.08) translate(-1px,2px) rotate(-0.6deg); }
-      75% { transform: scale(1.08) translate(2px,1px) rotate(-1.8deg); }
-      100% { transform: scale(1.08) translate(0,0) rotate(-1.5deg); }
-    }
-
-    main { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; padding: 20px; }
-
-    section, aside {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    aside { min-height: 200px; display: flex; justify-content: center; align-items: center; }
-
-    .sidebar {
-      position: fixed;
-      top: 60%;
-      left: 10px;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      z-index: 1000;
-    }
-
-    .sidebar img {
-      width: 50px;
-      cursor: pointer;
-      transition: transform 0.2s ease, filter 0.2s ease;
-      animation: neonPulse 2.2s infinite alternate;
-    }
-
-    .sidebar img:hover {
-      transform: scale(1.1) rotate(-2deg);
-      animation: neonPulse 2.2s infinite alternate, shake 0.36s linear;
-    }
-
-    @media (max-width: 768px) {
-      main { grid-template-columns: 1fr; }
-      nav { justify-content: center; }
-      nav img { height: 60px; }
-      .sidebar img { width: 40px; }
-      #loginBox { left: 50px; top: 140px; }
-    }
+    /* mobile */
+    @media(max-width:800px){.layout{grid-template-columns:1fr;}.sidebar{display:none} #loginBox{left:20px;top:90px} .calGrid{grid-template-columns:repeat(3,1fr)}}
   </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div id="loginBox">
-    <h2 id="formTitle">Iniciar Sesión</h2>
-    <input type="email" id="email" placeholder="Correo electrónico">
-    <input type="password" id="password" placeholder="Contraseña">
-    <input type="text" id="newUsername" placeholder="Nombre de usuario" style="display:none;">
-    <button id="loginBtn">Iniciar Sesión</button>
-    <button id="registerBtn" style="display:none;">Registrar</button>
-    <p class="toggle" id="toggleForm" style="color:#ff99cc; cursor:pointer;">¿No tienes cuenta? Regístrate aquí</p>
-    <p id="error">Usuario o contraseña incorrectos</p>
-  </div>
-</div>
-
-<div id="mainContent">
-  <header>
-    <h1>✨ MILI ✨</h1>
-    <nav>
-      <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INICIO.png?raw=true" alt="Inicio" onclick="showSection('home')">
-      <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/SORTEOS-removebg-preview.png?raw=true" alt="Sorteos" onclick="showSection('sorteo')">
-      <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/MOMENTOS-removebg-preview%20(1).png?raw=true" alt="Momento de Mili" onclick="showSection('mili')">
-      <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer; height:80px;">
-    </nav>
-  </header>
-
-  <div class="sidebar">
-    <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/INSTAGRAM.png?raw=true" alt="Instagram">
-    </a>
-    <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/TIK%20TOK.png?raw=true" alt="TikTok">
-    </a>
-    <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank">
-      <img src="https://github.com/jgalindoduvan-hue/MILY/blob/main/WHAT.png?raw=true" alt="WhatsApp">
-    </a>
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen">
+    <div id="loginBox" role="dialog" aria-labelledby="formTitle">
+      <h2 id="formTitle">Iniciar Sesión</h2>
+      <input type="email" id="email" placeholder="Correo electrónico" autocomplete="username">
+      <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password">
+      <input type="text" id="newUsername" placeholder="Nombre de usuario" style="display:none;">
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="loginBtn" class="btn">Iniciar Sesión</button>
+        <button id="registerBtn" class="btn" style="display:none;background:#fff;color:#ff3399;border:2px solid #ff99cc">Registrar</button>
+      </div>
+      <p id="toggleForm" style="color:#ff99cc;cursor:pointer;margin-top:10px;text-align:center">¿No tienes cuenta? Regístrate aquí</p>
+      <p id="error" style="color:#ffb3c9;display:none">Usuario o contraseña incorrectos</p>
+    </div>
   </div>
 
-  <main>
-    <section id="contentArea">
-      <h2>Bienvenido</h2>
-      <p id="welcomeMsg"></p>
-      <p id="roleMsg"></p>
-    </section>
-    <aside>🎥 Aquí irá el video o animación</aside>
-  </main>
-</div>
+  <!-- MAIN CONTENT -->
+  <div id="mainContent">
+    <header>
+      <h1>✨ MILI ✨</h1>
+      <nav>
+        <img id="btnHome" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INICIO.png" alt="Inicio" title="Inicio">
+        <img id="btnSorteo" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/SORTEOS-removebg-preview.png" alt="Sorteos" title="Sorteos">
+        <img id="btnMomentos" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/MOMENTOS-removebg-preview%20(1).png" alt="Momentos" title="Momentos">
+        <img id="btnUsers" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/admin-removebg-preview.png" alt="Usuarios" title="Usuarios" style="display:none;opacity:.95;height:66px;cursor:pointer">
+        <!-- logout sticker (fijo) -->
+        <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer;height:72px;margin-left:12px">
+      </nav>
+    </header>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    <!-- redes sociales -->
+    <div class="sidebar" aria-hidden="true">
+      <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
+      <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
+      <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
+    </div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBmsNMCASkrkNNgRndh8avKSVlfvUmnGAE",
-  authDomain: "mili-de743.firebaseapp.com",
-  projectId: "mili-de743",
-  storageBucket: "mili-de743.firebasestorage.app",
-  messagingSenderId: "662097238480",
-  appId: "1:662097238480:web:a66880f01638aa5722c1d5",
-  measurementId: "G-N3P79PWKZ2"
-};
+    <div class="layout">
+      <!-- HOME / INICIO -->
+      <section id="homeSection">
+        <h2>Inicio</h2>
+        <p id="welcomeMsg">Bienvenido al sistema de sorteo 🎉</p>
+        <p id="roleMsg"></p>
+      </section>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+      <!-- ASIDE: Calendario (solo se muestra con Inicio) -->
+      <aside id="calendarAside" aria-live="polite">
+        <div class="calendarHeader">
+          <div class="monthTitle" id="monthTitle">Mes</div>
+          <div class="calControls">
+            <button id="prevMonth" class="btn secondary">◀</button>
+            <button id="nextMonth" class="btn secondary">▶</button>
+            <button id="addEventBtn" class="btn" style="display:none;margin-left:8px">Añadir evento</button>
+          </div>
+        </div>
 
-const loginBtn = document.getElementById("loginBtn");
-const registerBtn = document.getElementById("registerBtn");
-const toggleForm = document.getElementById("toggleForm");
-const formTitle = document.getElementById("formTitle");
-const newUsernameInput = document.getElementById("newUsername");
-let isRegister = false;
+        <div class="calGrid" id="calGrid" role="grid" aria-label="Calendario mensual">
+          <!-- celdas por JS -->
+        </div>
 
-// Alternar login / registro
-toggleForm.addEventListener("click", () => {
-  isRegister = !isRegister;
-  if(isRegister){
-    formTitle.innerText = "Registrar Usuario";
-    newUsernameInput.style.display = "block";
-    loginBtn.style.display = "none";
-    registerBtn.style.display = "block";
-    toggleForm.innerText = "¿Ya tienes cuenta? Inicia sesión aquí";
-  } else {
-    formTitle.innerText = "Iniciar Sesión";
-    newUsernameInput.style.display = "none";
-    loginBtn.style.display = "block";
-    registerBtn.style.display = "none";
-    toggleForm.innerText = "¿No tienes cuenta? Regístrate aquí";
-  }
-});
+        <small style="display:block;margin-top:10px;color:#666">Haz clic en un día para ver sus eventos.</small>
+      </aside>
 
-// Login
-loginBtn.addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const error = document.getElementById("error");
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth,email,password);
-    showUserContent(userCredential.user.uid);
-  } catch(err){
-    console.error(err);
-    error.style.display="block";
-  }
-});
+      <!-- SORTEO -->
+      <section id="sorteoSection" style="display:none">
+        <h2>Sorteos</h2>
+        <p>Aquí estará la ruleta del sorteo (sección separada).</p>
+      </section>
 
-// Registro
-registerBtn.addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const username = newUsernameInput.value;
-  if(!username){ alert("Por favor ingresa un nombre de usuario"); return; }
-  try{
-    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
-    const uid = userCredential.user.uid;
-    await setDoc(doc(db,"users",uid),{ email, username, role:"user", createdAt:new Date() });
-    alert("Usuario registrado ✅ Ahora inicia sesión");
-    formTitle.innerText = "Iniciar Sesión";
-    newUsernameInput.style.display="none";
-    loginBtn.style.display="block";
-    registerBtn.style.display="none";
-    toggleForm.innerText="¿No tienes cuenta? Regístrate aquí";
-  } catch(err){ console.error(err); alert("Error: "+err.message);}
-});
+      <!-- MOMENTOS -->
+      <section id="momentosSection" style="display:none">
+        <h2>Momentos de Mili</h2>
+        <p>Fotos y videos subirán aquí (pendiente integrar Storage).</p>
+      </section>
+    </div>
 
-// Persistencia de sesión
-onAuthStateChanged(auth, user => { if(user) showUserContent(user.uid); });
+    <!-- Users panel -->
+    <div class="usersPanel" id="usersPanel" style="display:none">
+      <h3>Gestión de usuarios</h3>
+      <div id="usersList">Cargando usuarios...</div>
+    </div>
+  </div>
 
-// Mostrar contenido
-function showUserContent(uid){
-  getDoc(doc(db,"users",uid)).then(snap => {
-    let role="user", username=uid;
-    if(snap.exists()){ role=snap.data().role; username=snap.data().username||uid; }
-    document.getElementById("loginScreen").style.display="none";
-    document.getElementById("mainContent").style.display="block";
-    document.getElementById("welcomeMsg").innerText="Hola, "+username+" 👋";
-    document.getElementById("roleMsg").innerText=role==="admin"?"Has ingresado como Administrador ✅":"Has ingresado como Usuario 👤";
-  });
-}
+  <!-- MODAL para día/eventos -->
+  <div class="modalWrap" id="modalWrap" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <h3 id="modalDayTitle">Eventos</h3>
+        <button class="closeBtn" id="modalClose">X</button>
+      </div>
 
-// Logout
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-  await signOut(auth);
-  document.getElementById("mainContent").style.display="none";
-  document.getElementById("loginScreen").style.display="block";
-});
+      <div id="modalContent"></div>
 
-// Cambiar secciones
-window.showSection = function(section){
-  const content=document.getElementById("contentArea");
-  if(section==="home") content.innerHTML="<h2>Inicio</h2><p>Bienvenido al sistema de sorteo 🎉</p>";
-  else if(section==="sorteo") content.innerHTML="<h2>Sorteos</h2><p>Aquí estará la ruleta del sorteo.</p>";
-  else if(section==="mili") content.innerHTML="<h2>Momento de Mili</h2><p>Sección especial de Mili 💜</p>";
-}
-</script>
+      <div id="addFormWrap" style="margin-top:12px;display:none">
+        <h4>Añadir evento</h4>
+        <form id="addEventForm">
+          <input type="text" id="evTitle" placeholder="Título (requerido)" required>
+          <input type="date" id="evDate" required>
+          <textarea id="evDesc" placeholder="Descripción (opcional)"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit" class="btn">Guardar evento</button>
+            <button type="button" id="cancelAdd" class="closeBtn">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE + LÓGICA -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {
+      getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    // ====== TU CONFIG DE FIREBASE (la que compartiste) ======
+    const firebaseConfig = {
+      apiKey: "AIzaSyBmsNMCASkrkNNgRndh8avKSVlfvUmnGAE",
+      authDomain: "mili-de743.firebaseapp.com",
+      projectId: "mili-de743",
+      storageBucket: "mili-de743.firebasestorage.app",
+      messagingSenderId: "662097238480",
+      appId: "1:662097238480:web:a66880f01638aa5722c1d5",
+      measurementId: "G-N3P79PWKZ2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // UI refs
+    const loginScreen = document.getElementById('loginScreen');
+    const mainContent = document.getElementById('mainContent');
+    const displayName = document.getElementById('welcomeMsg');
+    const roleMsg = document.getElementById('roleMsg');
+    const emailEl = document.getElementById('email');
+    const passEl = document.getElementById('password');
+    const newUserEl = document.getElementById('newUsername');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const toggleForm = document.getElementById('toggleForm');
+
+    const monthTitle = document.getElementById('monthTitle');
+    const calGrid = document.getElementById('calGrid');
+    const prevMonthBtn = document.getElementById('prevMonth');
+    const nextMonthBtn = document.getElementById('nextMonth');
+    const addEventBtn = document.getElementById('addEventBtn');
+
+    const modalWrap = document.getElementById('modalWrap');
+    const modal = document.querySelector('.modal');
+    const modalClose = document.getElementById('modalClose');
+    const modalContent = document.getElementById('modalContent');
+    const modalDayTitle = document.getElementById('modalDayTitle');
+    const addFormWrap = document.getElementById('addFormWrap');
+    const addEventForm = document.getElementById('addEventForm');
+    const evDate = document.getElementById('evDate');
+    const evTitle = document.getElementById('evTitle');
+    const evDesc = document.getElementById('evDesc');
+    const cancelAdd = document.getElementById('cancelAdd');
+
+    const usersPanel = document.getElementById('usersPanel');
+    const usersList = document.getElementById('usersList');
+
+    const btnHome = document.getElementById('btnHome');
+    const btnSorteo = document.getElementById('btnSorteo');
+    const btnMomentos = document.getElementById('btnMomentos');
+    const btnUsers = document.getElementById('btnUsers');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const homeSection = document.getElementById('homeSection');
+    const calendarAside = document.getElementById('calendarAside');
+    const sorteoSection = document.getElementById('sorteoSection');
+    const momentosSection = document.getElementById('momentosSection');
+
+    // state
+    let viewDate = new Date();
+    let eventsCache = []; // all events listened in real time
+    let currentUser = null;
+    let currentUserRole = 'user';
+
+    // Helpers
+    function toISODate(d){ const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2); const dd=('0'+d.getDate()).slice(-2); return `${y}-${m}-${dd}`; }
+    function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+    function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+    // Toggle sections
+    function showSection(name){
+      // hide all
+      homeSection.style.display = 'none';
+      calendarAside.style.display = 'none';
+      sorteoSection.style.display = 'none';
+      momentosSection.style.display = 'none';
+      usersPanel.style.display = 'none';
+      // show requested
+      if(name === 'home'){ homeSection.style.display = 'block'; calendarAside.style.display = 'block'; }
+      if(name === 'sorteo'){ sorteoSection.style.display = 'block'; }
+      if(name === 'momentos'){ momentosSection.style.display = 'block'; }
+      if(name === 'users'){ usersPanel.style.display = 'block'; }
+    }
+    // wire nav
+    btnHome.addEventListener('click', ()=> showSection('home'));
+    btnSorteo.addEventListener('click', ()=> showSection('sorteo'));
+    btnMomentos.addEventListener('click', ()=> showSection('momentos'));
+    btnUsers.addEventListener('click', ()=> { if(currentUserRole==='admin') showSection('users'); });
+
+    // login/register toggle
+    let isRegister = false;
+    toggleForm.addEventListener('click', ()=>{ 
+      isRegister = !isRegister;
+      if(isRegister){
+        document.getElementById('formTitle').innerText = 'Registrar Usuario';
+        newUserEl.style.display = 'block';
+        loginBtn.style.display = 'none';
+        registerBtn.style.display = 'inline-block';
+        toggleForm.innerText = '¿Ya tienes cuenta? Inicia sesión aquí';
+      } else {
+        document.getElementById('formTitle').innerText = 'Iniciar Sesión';
+        newUserEl.style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        registerBtn.style.display = 'none';
+        toggleForm.innerText = '¿No tienes cuenta? Regístrate aquí';
+      }
+    });
+
+    // ENTER key triggers current action (login or register)
+    document.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        // avoid Enter when modal open
+        if(modalWrap.style.display === 'flex') return;
+        if(isRegister) doRegister();
+        else doLogin();
+      }
+    });
+
+    // LOGIN
+    async function doLogin(){
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+      if(!email || !password) { alert('Completa correo y contraseña'); return; }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        // onAuthStateChanged will handle UI
+      } catch(err){
+        console.error(err);
+        document.getElementById('error').style.display = 'block';
+      }
+    }
+    loginBtn.addEventListener('click', doLogin);
+
+    // REGISTER
+    async function doRegister(){
+      const email = emailEl.value.trim();
+      const password = passEl.value;
+      const username = newUserEl.value.trim();
+      if(!email || !password || !username){ alert('Completa todos los campos'); return; }
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        // create user doc with uid as id
+        await setDoc(doc(db,'users',cred.user.uid), { uid: cred.user.uid, email, username, role: 'user', suscriptor: false, createdAt: new Date().toISOString() });
+        alert('Registrado. Inicia sesión.');
+        // switch back to login form
+        isRegister = false;
+        newUserEl.style.display = 'none';
+        registerBtn.style.display = 'none';
+        loginBtn.style.display = 'inline-block';
+        toggleForm.innerText = '¿No tienes cuenta? Regístrate aquí';
+      } catch(err){
+        console.error(err);
+        alert('Error: ' + err.message);
+      }
+    }
+    registerBtn.addEventListener('click', doRegister);
+
+    // LOGOUT
+    logoutBtn.addEventListener('click', async ()=>{
+      if (!currentUser) return;
+      if (!confirm('¿Cerrar sesión?')) return;
+      await signOut(auth);
+    });
+
+    // ---------- Real-time listeners ----------
+    // Users listener (admin)
+    let usersUnsub = null;
+    function startUsersListener(){
+      if(usersUnsub) return;
+      const q = query(collection(db,'users'), orderBy('createdAt','asc'));
+      usersUnsub = onSnapshot(q, snapshot=>{
+        usersList.innerHTML = '';
+        snapshot.forEach(snap=>{
+          const u = snap.data();
+          const div = document.createElement('div');
+          div.className = 'userRow';
+          const left = document.createElement('div'); left.innerText = `${u.username || u.email} — ${u.role || 'user'} ${u.suscriptor ? ' (Suscriptor)' : ''}`;
+          const right = document.createElement('div');
+
+          // don't let admin modify themselves
+          if(currentUser && currentUser.uid !== snap.id){
+            // Admin button
+            const adminBtn = document.createElement('button');
+            adminBtn.textContent = u.role === 'admin' ? 'Quitar admin' : 'Hacer admin';
+            adminBtn.className = u.role === 'admin' ? 'btn-remove-admin' : 'btn-admin';
+            adminBtn.onclick = async ()=> {
+              try {
+                await updateDoc(doc(db,'users', snap.id), { role: u.role === 'admin' ? 'user' : 'admin' });
+              } catch(err){ console.error(err); alert('Error actualizando rol: '+err.message); }
+            };
+            right.appendChild(adminBtn);
+
+            // Suscriptor button
+            const subsBtn = document.createElement('button');
+            subsBtn.textContent = u.suscriptor ? 'Quitar Suscriptor' : 'Dar Suscriptor';
+            subsBtn.className = u.suscriptor ? 'btn-remove-subscriber' : 'btn-subscriber';
+            subsBtn.onclick = async ()=> {
+              try {
+                await updateDoc(doc(db,'users', snap.id), { suscriptor: !u.suscriptor });
+              } catch(err){ console.error(err); alert('Error actualizando suscriptor: '+err.message); }
+            };
+            right.appendChild(subsBtn);
+          }
+
+          div.appendChild(left); div.appendChild(right);
+          usersList.appendChild(div);
+        });
+      });
+    }
+    function stopUsersListener(){
+      if(usersUnsub){ usersUnsub(); usersUnsub = null; }
+    }
+
+    // Events listener
+    let eventsUnsub = null;
+    function startEventsListener(){
+      if(eventsUnsub) return;
+      const q = query(collection(db,'events'), orderBy('date','asc'));
+      eventsUnsub = onSnapshot(q, snapshot=>{
+        eventsCache = [];
+        snapshot.forEach(snap=>{
+          eventsCache.push({ id: snap.id, ...snap.data() });
+        });
+        renderCalendar();
+      });
+    }
+    function stopEventsListener(){
+      if(eventsUnsub){ eventsUnsub(); eventsUnsub = null; }
+    }
+
+    // Render calendar for viewDate
+    function renderCalendar(){
+      calGrid.innerHTML = '';
+      const start = startOfMonth(viewDate);
+      const end = endOfMonth(viewDate);
+      const monthName = viewDate.toLocaleString('es-ES',{month:'long', year:'numeric'});
+      monthTitle.innerText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+      const startWeekday = (start.getDay() + 6) % 7;
+      const days = end.getDate();
+
+      for (let i=0;i<startWeekday;i++){
+        const empty = document.createElement('div'); empty.className='calCell'; empty.style.background='transparent';
+        calGrid.appendChild(empty);
+      }
+
+      for (let d=1; d<=days; d++){
+        const dateObj = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
+        const iso = toISODate(dateObj);
+        const cell = document.createElement('div'); cell.className='calCell';
+        const dayNum = document.createElement('div'); dayNum.className='dayNum'; dayNum.innerText = d; cell.appendChild(dayNum);
+
+        const evs = eventsCache.filter(e => e.date === iso);
+        if (evs.length>0) {
+          cell.classList.add('hasEvent');
+          const list = document.createElement('div');
+          list.style.marginTop='6px';
+          list.style.fontSize='13px';
+          list.style.color='#333';
+          list.innerHTML = evs.slice(0,2).map(e => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div>`).join('');
+          cell.appendChild(list);
+          const dot = document.createElement('div'); dot.className='eventDot'; cell.appendChild(dot);
+        }
+
+        cell.addEventListener('click', ()=> openDayModal(dateObj));
+        calGrid.appendChild(cell);
+      }
+    }
+
+    // Open modal for day
+    function openDayModal(dateObj){
+      modalWrap.style.display = 'flex';
+      modalDayTitle.innerText = `Eventos — ${dateObj.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
+      modalContent.innerHTML = '';
+
+      const iso = toISODate(dateObj);
+      const evs = eventsCache.filter(e => e.date === iso);
+      if(evs.length === 0) modalContent.innerHTML = `<p style="color:#666">No hay eventos para este día.</p>`;
+      else {
+        evs.forEach(ev=>{
+          const div = document.createElement('div'); div.className='eventItem';
+          const title = document.createElement('div'); title.style.fontWeight='700'; title.innerText = ev.title;
+          const desc = document.createElement('div'); desc.innerText = ev.description || '';
+          div.appendChild(title); div.appendChild(desc);
+
+          if(currentUserRole === 'admin'){
+            const del = document.createElement('button'); del.className='btn'; del.style.background='#ff4444'; del.style.marginTop='8px'; del.innerText='Eliminar evento';
+            del.onclick = async ()=> {
+              if(!confirm('¿Eliminar evento?')) return;
+              try {
+                await deleteDoc(doc(db,'events', ev.id));
+              } catch(err){ console.error(err); alert('Error: '+err.message); }
+            };
+            div.appendChild(del);
+          }
+
+          modalContent.appendChild(div);
+        });
+      }
+
+      if(currentUserRole === 'admin'){
+        addFormWrap.style.display = 'block';
+        evDate.value = iso;
+      } else addFormWrap.style.display = 'none';
+    }
+
+    modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; });
+
+    modalWrap.addEventListener('click', (e)=> {
+      if (e.target === modalWrap) modalWrap.style.display='none';
+    });
+
+    // add event (admin only)
+    addEventForm.addEventListener('submit', async (ev)=>{
+      ev.preventDefault();
+      if(currentUserRole !== 'admin') return alert('Solo admins pueden añadir eventos');
+      const title = evTitle.value.trim();
+      const date = evDate.value;
+      const description = evDesc.value.trim();
+      if(!title || !date) return alert('Título y fecha requeridos');
+      try {
+        await addDoc(collection(db,'events'), { title, description, date, createdAt: new Date().toISOString() });
+        evTitle.value=''; evDesc.value='';
+      } catch(err){ console.error(err); alert('Error guardando: '+err.message); }
+    });
+
+    cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display='none'; modalWrap.style.display='none'; });
+
+    // prev/next month
+    prevMonthBtn.addEventListener('click', ()=> { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1); renderCalendar(); });
+    nextMonthBtn.addEventListener('click', ()=> { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1); renderCalendar(); });
+
+    // addEventBtn opens modal for today's date
+    addEventBtn.addEventListener('click', ()=> {
+      const d = new Date(viewDate.getFullYear(), viewDate.getMonth(), new Date().getDate());
+      openDayModal(d);
+    });
+
+    // ---------- Auth state handling ----------
+    onAuthStateChanged(auth, async (user)=>{
+      currentUser = user;
+      if(user){
+        // read or create user doc (id = uid)
+        let role = 'user';
+        let username = user.email;
+        try {
+          const uDoc = await getDoc(doc(db,'users', user.uid));
+          if(uDoc.exists()){
+            const data = uDoc.data();
+            role = data.role || 'user';
+            username = data.username || user.email.split('@')[0];
+          } else {
+            // default admin for your email
+            const defaultRole = (user.email === 'jgalindoduvan@gmail.com') ? 'admin' : 'user';
+            await setDoc(doc(db,'users', user.uid), { uid: user.uid, email: user.email, username: user.email.split('@')[0], role: defaultRole, suscriptor: false, createdAt: new Date().toISOString() });
+            role = defaultRole;
+            username = user.email.split('@')[0];
+          }
+        } catch(err){ console.error('Error leyendo/creando user doc:', err); }
+
+        currentUserRole = role;
+        loginScreen.style.display='none';
+        mainContent.style.display='block';
+        displayName.innerText = `Hola, ${username} 👋`;
+        roleMsg.innerText = currentUserRole === 'admin' ? 'Has ingresado como Administrador ✅' : 'Has ingresado como Usuario 👤';
+
+        btnUsers.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
+        usersPanel.style.display = 'none';
+
+        // start listeners according to role
+        startEventsListener();
+        if(currentUserRole === 'admin') startUsersListener();
+        else stopUsersListener();
+
+        addEventBtn.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
+
+        renderCalendar();
+      } else {
+        loginScreen.style.display='block';
+        mainContent.style.display='none';
+        stopEventsListener();
+        stopUsersListener();
+        currentUserRole = 'user';
+      }
+    });
+
+    // small accessibility: focus email on load
+    emailEl.focus();
+
+    // USERS view (admin)
+    function showUsersSection(){
+      usersPanel.style.display = 'block';
+      // ensure listener is running
+      if(!usersUnsub) startUsersListener();
+    }
+    btnUsers.addEventListener('click', ()=> {
+      if(currentUserRole === 'admin') {
+        showUsersSection();
+        showSection('users');
+      }
+    });
+
+    // helper: initial render of calendar
+    renderCalendar();
+  </script>
 </body>
 </html>
+
