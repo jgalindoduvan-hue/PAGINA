@@ -40,7 +40,7 @@
       z-index: 120;
     }
     .mobileOverlay.open {
-      background: rgba(0,0,0,0.35);
+      background: transparent; /* sin oscurecer */
       pointer-events: auto;
     }
 
@@ -66,7 +66,7 @@
       display: none; /* ahora controlado por JS (open class) */
       flex-direction: column;
       gap: 18px;
-      z-index: 40;
+      z-index: 1300; /* <- aumentado para que quede encima del overlay y no se cierre al pulsar */
       align-items:flex-start;
     }
     .stickyMobile.open { display:flex; }
@@ -784,8 +784,20 @@
     mobileOverlay.addEventListener('click', closeMobileSticky);
 
     // close mobile sticky when clicking any link inside it
+    // NOTE: changed behavior — do NOT auto-close when link opens in new tab/external (target _blank or http(s)),
+    // so the sticky stays open while external links open. For internal links we still close.
     Array.from(stickyMobile.querySelectorAll('a')).forEach(a => {
-      a.addEventListener('click', ()=> setTimeout(closeMobileSticky, 120));
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href') || '';
+        const target = a.getAttribute('target');
+        // If link opens in a new tab or is external/phone/mail, don't auto-close the sticky
+        if (target === '_blank' || /^https?:\/\//i.test(href) || href.startsWith('mailto:') || href.startsWith('tel:')) {
+          // leave sticky open so user sees menu while external opens
+          return;
+        }
+        // For internal/href anchors, close after a small delay
+        setTimeout(closeMobileSticky, 120);
+      });
     });
 
     // ensure mobile sticky closes when modal opens (avoid stacking)
@@ -834,6 +846,7 @@
   </script>
 </body>
 </html>
+
 
 
 
