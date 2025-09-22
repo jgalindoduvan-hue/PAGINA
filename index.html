@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MILI — Todo integrado</title>
+  <title>MILI</title>
   <style>
     /* ===== Reset + base ===== */
     html,body{margin:0;height:100%;font-family:Arial, sans-serif;background:#fff}
@@ -20,48 +20,128 @@
     #toggleForm{color:#ff99cc;cursor:pointer;text-align:center;margin-top:8px}
 
     /* ===== Header + nav ===== */
-    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30}
+    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:300}
     header h1{margin:0;font-weight:700}
     nav{display:flex;gap:10px;align-items:center}
     nav img{height:72px;cursor:pointer;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 3px #ff66cc);border-radius:8px}
     nav img:hover{transform:scale(1.06) rotate(-1.5deg);animation:shake .36s}
     @keyframes shake{0%{transform:translate(0) rotate(0)}25%{transform:translate(1px,-1px) rotate(-2deg)}50%{transform:translate(-1px,2px) rotate(1deg)}75%{transform:translate(2px,1px) rotate(-1deg)}100%{transform:translate(0) rotate(0)}}
 
-    /* Hamburger (mobile) */
-    .hamburger { display: none; width: 34px; height: 28px; flex-direction: column; justify-content: space-between; cursor: pointer; margin-right: 8px; }
-    .hamburger span { display:block; height:4px; background:white; border-radius:3px; }
+    /* Hamburger (mobile) - fixed under the pink navbar, left corner */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: calc(56px); /* justo debajo de la franja rosada */
+      left: 8px;
+      z-index: 400;
+      width: 44px;
+      height: 38px;
+      background: #000; /* negro para resaltar */
+      border-radius: 8px;
+      padding: 8px 7px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.35);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .hamburger .bar {
+      width: 100%;
+      height: 3px;
+      background: #fff;
+      border-radius: 2px;
+      display:block;
+      box-shadow: 0 0 6px rgba(255,255,255,0.06);
+      margin: 4px 0;
+    }
 
-    /* Mobile menu (sliding stickers) */
-    .mobileOverlay {
-  position: fixed;
-  inset: 0;
-  background: transparent; /* transparente */
-  pointer-events: none;
-  z-index: 120;
-}
-    .mobileOverlay.open {
-  background: transparent; /* sigue transparente */
-  pointer-events: auto;
-}
-
+    /* Mobile menu (vertical stickers) - fixed and stable */
+    .mobileOverlay{
+      position: fixed;
+      inset:0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 390;
+    }
     .mobileMenu {
       position: fixed;
-      top: 60%; /* más abajo que el centro */
-      left: 10px;
+      top: calc(56px + 46px); /* un poco más abajo del boton (barra rosa + hamburguesa) */
+      left: 8px;
       display: none;
       flex-direction: column;
-      gap: 14px;
-      z-index: 2000;
+      gap: 12px;
+      z-index: 395;
+      transform: translateY(0);
+      pointer-events: auto;
     }
-    .mobileMenu.open {
-  display: flex; /* aparece solo cuando está activo */
-}
+    .mobileMenu.open { display:flex; }
+    .mobileMenu a, .mobileMenu button {
+      display:block;
+      width:56px;
+      height:auto;
+      background:transparent;
+      border: none;
+      padding:0;
+      margin:0;
+    }
     .mobileMenu img {
       width:56px;
-      height:auto; /* mantiene proporción */
+      height:auto;
       border-radius:8px;
-      cursor:pointer;
+      display:block;
     }
+
+    /* Payments mini modal (white box with neon border) */
+    .payModalWrap {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      pointer-events: auto;
+    }
+    .payModal {
+      width: min(360px,92%);
+      background: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      border: 3px solid transparent;
+      /* neon border via background-clip trick */
+      background-origin: border-box;
+    }
+    /* Neon gradient border and glow (animating "breath") */
+    .payModal:before{
+      content:"";
+      position:absolute;
+      inset:-3px;
+      border-radius:16px;
+      padding:3px;
+      background: linear-gradient(90deg, rgba(123,0,255,0.9), rgba(255,51,153,0.95));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity:0.95;
+      filter: blur(6px);
+      animation: pulseNeon 2.6s ease-in-out infinite;
+      z-index:-1;
+    }
+    @keyframes pulseNeon {
+      0% { transform: scale(1); opacity:0.8; }
+      50% { transform: scale(1.03); opacity:1; }
+      100% { transform: scale(1); opacity:0.8; }
+    }
+
+    .payModal h4 { margin:0 0 10px; font-size:16px; }
+    .payGrid { display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap; }
+    .payItem { display:flex;flex-direction:column;align-items:center; gap:6px; }
+    .payItem img { width:88px; border-radius:8px; cursor:pointer; }
+    .payClose { position:absolute; right:8px; top:8px; background:#eee; border:none; padding:6px 8px; border-radius:6px; cursor:pointer; }
+
+    .nequiBox { display:none; margin-top:10px; text-align:center; }
+    .nequiBox img { width:140px; height:auto; display:block; margin:0 auto 8px; }
+    .nequiNumber { font-weight:700; color:#333; }
 
     /* ===== Layout principal ===== */
     #mainContent{display:none;min-height:100vh}
@@ -70,11 +150,7 @@
     aside{min-height:260px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
 
     /* ===== Sidebar redes (desktop) ===== */
-    .sidebar{
-  position: fixed;
-  top: 160px; /* más abajo, fijo también en desktop */
-  left: 10px;
-  gap: 20px;position:fixed;left:10px;top:60%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:30}
+    .sidebar{position:fixed;left:10px;top:160px;display:flex;flex-direction:column;gap:12px;z-index:30}
     .sidebar img{width:50px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
     .sidebar img:hover{transform:scale(1.12) rotate(-2deg);filter:drop-shadow(0 0 10px #ff66cc)}
 
@@ -113,7 +189,7 @@
     .btn-subscriber{background:#009688;color:#fff}
     .btn-remove-subscriber{background:#ff8a80;color:#000}
 
-    /* ===== Responsive tweaks: make calendar smaller and readable on phones ===== */
+    /* ===== Responsive tweaks ===== */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
       aside#calendarAside { order: 2; }
@@ -122,135 +198,30 @@
       .calCell { min-height:60px; padding:5px; }
       .hamburger { display:flex; }
       nav { gap:6px; }
-      /* hide desktop sidebar on small screens */
       .sidebar { display: none; }
     }
 
     @media (max-width: 600px) {
-      /* Keep 7 columns but smaller cells so calendar still looks like a month */
       .calGrid { grid-template-columns: repeat(7, 1fr); gap:4px; }
       .calCell { min-height:46px; padding:4px; }
       .calCell .dayNum { font-size:12px; }
       .monthTitle { font-size:16px; }
       .calControls button { padding:6px 8px; font-size:13px; }
       #loginBox { left:12px; top:120px; width:260px; }
-      .mobileMenu {
-      position: fixed;
-      top: 60%; /* más abajo que el centro */
-      left: 10px;
-      display: none;
-      flex-direction: column;
-      gap: 14px;
-      z-index: 2000;
-    }
-      .mobileMenu.open {
-  display: flex; /* aparece solo cuando está activo */
-}
-      .mobileMenu img {
-      width:56px;
-      height:auto; /* mantiene proporción */
-      border-radius:8px;
-      cursor:pointer;
-    }
+      .mobileMenu { left:8px; top: calc(56px + 46px); }
     }
 
     @media (max-width: 420px) {
       .calCell { min-height:42px; padding:3px; }
       .calCell .dayNum { font-size:11px; }
       nav img { height:58px; }
+      .mobileMenu img { width:48px; }
+      .hamburger { left:6px; top: calc(56px); }
     }
-  
-nav img {
-  height:72px;
-  cursor:pointer;
-  transition:transform .18s,filter .18s;
-  filter:drop-shadow(0 0 3px #ff66cc);
-  border-radius:8px;
-}
-nav img:hover {
-  transform:scale(1.06) rotate(-1.5deg);
-  animation:shake .36s;
-}
 
-.sidebar img,
-.mobileMenu img {
-      width:56px;
-      height:auto; /* mantiene proporción */
-      border-radius:8px;
-      cursor:pointer;
-    }
-.sidebar img:hover,
-.mobileMenu img:hover {
-  transform:scale(1.12) rotate(-2deg);
-  filter:drop-shadow(0 0 10px #ff66cc);
-}
-
-@keyframes shake {
-  0%{transform:translate(0) rotate(0)}
-  25%{transform:translate(1px,-1px) rotate(-2deg)}
-  50%{transform:translate(-1px,2px) rotate(1deg)}
-  75%{transform:translate(2px,1px) rotate(-1deg)}
-  100%{transform:translate(0) rotate(0)}
-}
-
-
-/* Sidebar redes (desktop) */
-.sidebar {
-  position: fixed;
-  top: 50%; /* centrado vertical */
-  left: 10px;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  z-index: 30;
-}
-
-.sidebar img,
-.mobileMenu img {
-  width: 58px;
-  height: auto; /* mantiene proporción */
-  border-radius: 10px;
-  cursor: pointer;
-  transition: transform .2s, filter .2s;
-  filter: drop-shadow(0 0 6px #ff33cc) drop-shadow(0 0 12px #ff33cc);
-}
-
-.sidebar img:hover,
-.mobileMenu img:hover {
-  transform: scale(1.15) rotate(-2deg);
-  filter: drop-shadow(0 0 10px #ff33cc) drop-shadow(0 0 20px #ff66ff);
-}
-
-/* Menú móvil */
-.mobileMenu {
-  position: fixed;
-  top: 50%;   /* centrado vertical */
-  left: 12px; /* pegado a la pared */
-  display: none;
-  flex-direction: column;
-  gap: 16px;
-  z-index: 2000;
-  transform: translateY(-50%);
-}
-.mobileMenu.open {
-  display: flex;
-}
-
-
-@media (max-width: 900px) {
-  .sidebar {
-    display: none; /* ocultar en móviles */
-  }
-  .mobileMenu {
-    display: none; /* oculto por defecto */
-  }
-  .mobileMenu.open {
-    display: flex; /* se abre al tocar hamburguesa */
-  }
-}
-
-</style>
+    /* small helpers */
+    .hidden { display:none !important; }
+  </style>
 </head>
 <body>
 
@@ -274,10 +245,7 @@ nav img:hover {
   <div id="mainContent">
     <header>
       <div style="display:flex;align-items:center;">
-        <!-- Hamburger (visible on small screens) -->
-        <div class="hamburger" id="hamburgerBtn" aria-label="Abrir menú" title="Menú" tabindex="0">
-          <span></span><span></span><span></span>
-        </div>
+        <!-- placeholder for spacing, actual hamburger is fixed -->
         <h1> MILI </h1>
       </div>
 
@@ -291,16 +259,29 @@ nav img:hover {
       </nav>
     </header>
 
-    <!-- mobile overlay + menu -->
+    <!-- fixed hamburger (mobile) -->
+    <div class="hamburger" id="hamburgerBtn" role="button" aria-label="Abrir menú">
+      <span class="bar"></span>
+      <span class="bar"></span>
+      <span class="bar"></span>
+    </div>
+
+    <!-- mobile overlay (transparent) -->
     <div class="mobileOverlay" id="mobileOverlay" aria-hidden="true"></div>
+
+    <!-- mobileMenu (stickers vertical) -->
     <div class="mobileMenu" id="mobileMenu" aria-hidden="true">
-      <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
-      <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
-      <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
+      <a href="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" id="paymentsMobile" title="Pagos" role="button" aria-label="Pagos">
+        <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos">
+      </a>
+      <a href="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
+      <a href="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
+      <a href="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
     </div>
 
     <!-- redes sociales (desktop) -->
     <div class="sidebar" aria-hidden="true">
+      <a href="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" id="paymentsDesktop" title="Pagos"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos"></a>
       <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
       <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
       <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
@@ -377,15 +358,44 @@ nav img:hover {
     </div>
   </div>
 
+  <!-- PAYMENTS MINI MODAL -->
+  <div class="payModalWrap" id="payModalWrap" aria-hidden="true">
+    <div class="payModal" role="dialog" aria-modal="true" id="payModal">
+      <button class="payClose" id="payClose">X</button>
+      <h4>Métodos de pago</h4>
+      <div class="payGrid">
+        <div class="payItem">
+          <a id="paypalLink" href="https://www.paypal.com/paypalme/mili437" target="_blank" rel="noreferrer">
+            <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/paypal.png" alt="PayPal">
+          </a>
+          <div style="font-size:12px">PayPal</div>
+        </div>
+
+        <div class="payItem">
+          <button id="nequiBtn" style="background:transparent;border:none;padding:0;cursor:pointer" aria-label="Nequi">
+            <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/nequi.png" alt="Nequi">
+          </button>
+          <div style="font-size:12px">Nequi</div>
+        </div>
+      </div>
+
+      <div class="nequiBox" id="nequiBox">
+        <img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/qr.jpeg" alt="QR Nequi">
+        <div class="nequiNumber">3226801768</div>
+        <div style="font-size:12px;color:#666;margin-top:8px">Escanea el QR o usa el número</div>
+      </div>
+    </div>
+  </div>
+
   <!-- FIREBASE + LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
-      getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy
+      getFirestore, collection, doc, setDoc, getDoc, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // ====== TU CONFIG DE FIREBASE ======
+    // ====== TU CONFIG DE FIREBASE (igual a la que tenías) ======
     const firebaseConfig = {
       apiKey: "AIzaSyBmsNMCASkrkNNgRndh8avKSVlfvUmnGAE",
       authDomain: "mili-de743.firebaseapp.com",
@@ -448,6 +458,14 @@ nav img:hover {
     const mobileMenu = document.getElementById('mobileMenu');
     const mobileOverlay = document.getElementById('mobileOverlay');
 
+    // payments UI
+    const payModalWrap = document.getElementById('payModalWrap');
+    const payClose = document.getElementById('payClose');
+    const paymentsMobile = document.getElementById('paymentsMobile');
+    const paymentsDesktop = document.getElementById('paymentsDesktop');
+    const nequiBtn = document.getElementById('nequiBtn');
+    const nequiBox = document.getElementById('nequiBox');
+
     // state
     let viewDate = new Date();
     let eventsCache = []; // all events listened in real time
@@ -458,6 +476,17 @@ nav img:hover {
     function toISODate(d){ const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2); const dd=('0'+d.getDate()).slice(-2); return `${y}-${m}-${dd}`; }
     function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
     function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+    // small utility: convert URLs in text to clickable anchors
+    function linkify(text){
+      if(!text) return '';
+      const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
+      return text.replace(urlRegex, function(url){
+        let href = url;
+        if(!href.startsWith('http')) href = 'https://'+href;
+        return `<a href="${href}" target="_blank" rel="noreferrer">${url}</a>`;
+      });
+    }
 
     // Toggle sections
     function showSection(name){
@@ -571,7 +600,6 @@ nav img:hover {
 
           // don't let admin modify themselves
           if(currentUser && currentUser.uid !== snap.id){
-            // Admin button
             const adminBtn = document.createElement('button');
             adminBtn.textContent = u.role === 'admin' ? 'Quitar admin' : 'Hacer admin';
             adminBtn.className = u.role === 'admin' ? 'btn-remove-admin' : 'btn-admin';
@@ -582,7 +610,6 @@ nav img:hover {
             };
             right.appendChild(adminBtn);
 
-            // Suscriptor button
             const subsBtn = document.createElement('button');
             subsBtn.textContent = u.suscriptor ? 'Quitar Suscriptor' : 'Dar Suscriptor';
             subsBtn.className = u.suscriptor ? 'btn-remove-subscriber' : 'btn-subscriber';
@@ -649,6 +676,7 @@ nav img:hover {
           list.style.marginTop='6px';
           list.style.fontSize='13px';
           list.style.color='#333';
+          // show only titles here (description opens in modal). Keep same behaviour as before.
           list.innerHTML = evs.slice(0,2).map(e => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div>`).join('');
           cell.appendChild(list);
           const dot = document.createElement('div'); dot.className='eventDot'; cell.appendChild(dot);
@@ -672,7 +700,9 @@ nav img:hover {
         evs.forEach(ev=>{
           const div = document.createElement('div'); div.className='eventItem';
           const title = document.createElement('div'); title.style.fontWeight='700'; title.innerText = ev.title;
-          const desc = document.createElement('div'); desc.innerText = ev.description || '';
+          const desc = document.createElement('div');
+          // Linkify the description so links are clickable
+          desc.innerHTML = linkify(ev.description || '');
           div.appendChild(title); div.appendChild(desc);
 
           if(currentUserRole === 'admin'){
@@ -732,7 +762,6 @@ nav img:hover {
     onAuthStateChanged(auth, async (user)=>{
       currentUser = user;
       if(user){
-        // read or create user doc (id = uid)
         let role = 'user';
         let username = user.email;
         try {
@@ -742,7 +771,6 @@ nav img:hover {
             role = data.role || 'user';
             username = data.username || user.email.split('@')[0];
           } else {
-            // default admin for your email
             const defaultRole = (user.email === 'jgalindoduvan@gmail.com') ? 'admin' : 'user';
             await setDoc(doc(db,'users', user.uid), { uid: user.uid, email: user.email, username: user.email.split('@')[0], role: defaultRole, suscriptor: false, createdAt: new Date().toISOString() });
             role = defaultRole;
@@ -753,8 +781,8 @@ nav img:hover {
         currentUserRole = role;
         loginScreen.style.display='none';
         mainContent.style.display='block';
-        displayName.innerText = `Hola, ${username} 👋`;
-        roleMsg.innerText = currentUserRole === 'admin' ? 'Has ingresado como Administrador ✅' : 'Has ingresado como Usuario 👤';
+        displayName && (displayName.innerText = `Hola, ${username} 👋`);
+        roleMsg && (roleMsg.innerText = currentUserRole === 'admin' ? 'Has ingresado como Administrador ✅' : 'Has ingresado como Usuario 👤');
 
         btnUsers.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
         usersPanel.style.display = 'none';
@@ -782,7 +810,6 @@ nav img:hover {
     // USERS view (admin)
     function showUsersSection(){
       usersPanel.style.display = 'block';
-      // ensure listener is running
       if(!usersUnsub) startUsersListener();
     }
     btnUsers.addEventListener('click', ()=> {
@@ -796,40 +823,48 @@ nav img:hover {
     renderCalendar();
 
     // ---------- Mobile menu logic ----------
-    function openMobileMenu(){
-      mobileMenu.classList.add('open');
-      mobileOverlay.classList.add('open');
-      mobileMenu.setAttribute('aria-hidden','false');
-      mobileOverlay.setAttribute('aria-hidden','false');
+    function toggleMobileMenu(){
+      mobileMenu.classList.toggle('open');
     }
-    function closeMobileMenu(){
-      mobileMenu.classList.remove('open');
-      mobileOverlay.classList.remove('open');
-      mobileMenu.setAttribute('aria-hidden','true');
-      mobileOverlay.setAttribute('aria-hidden','true');
-    }
-    function toggleMobileMenu() {
-  mobileMenu.classList.toggle('open');
-}
-
     hamburgerBtn.addEventListener('click', toggleMobileMenu);
     hamburgerBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMobileMenu(); }});
-    mobileOverlay.addEventListener('click', closeMobileMenu);
+    mobileOverlay.addEventListener('click', ()=> { mobileMenu.classList.remove('open'); });
 
-    // close mobile menu when clicking any mobile sticker (improves UX)
+    // mobile/desktop payments open
+    function openPayments(){
+      nequiBox.style.display = 'none';
+      payModalWrap.style.display = 'flex';
+    }
+    paymentsMobile.addEventListener('click', (e)=> { e.preventDefault(); openPayments(); mobileMenu.classList.remove('open'); });
+    paymentsDesktop.addEventListener('click', (e)=> { e.preventDefault(); openPayments(); });
+
+    payClose.addEventListener('click', ()=> { payModalWrap.style.display = 'none'; nequiBox.style.display = 'none'; });
+
+    // nequi behaviour: show QR and number inside pay modal
+    nequiBtn.addEventListener('click', ()=> {
+      nequiBox.style.display = (nequiBox.style.display === 'block') ? 'none' : 'block';
+    });
+
+    // close payments when clicking outside
+    payModalWrap.addEventListener('click', (e)=> {
+      if(e.target === payModalWrap) { payModalWrap.style.display = 'none'; nequiBox.style.display = 'none'; }
+    });
+
+    // close mobile menu when clicking any other mobile sticker (improves UX)
     Array.from(mobileMenu.querySelectorAll('a')).forEach(a => {
-      a.addEventListener('click', ()=> setTimeout(closeMobileMenu, 120));
+      a.addEventListener('click', ()=> setTimeout(()=> mobileMenu.classList.remove('open'), 120));
     });
 
     // ensure mobile menu closes when modal opens (avoid stacking)
     const observer = new MutationObserver(()=> {
-      if(modalWrap.style.display === 'flex') closeMobileMenu();
+      if(modalWrap.style.display === 'flex') mobileMenu.classList.remove('open');
     });
     observer.observe(modalWrap, { attributes: true, attributeFilter: ['style'] });
 
   </script>
 </body>
 </html>
+
 
 
 
