@@ -44,7 +44,7 @@
       pointer-events: auto;
     }
 
-    /* Mobile menu (sliding stickers) */
+    /* Mobile menu (legacy, not used as primary mobile stickers) */
     .mobileMenu {
       position: fixed;
       top: 50%;
@@ -58,17 +58,18 @@
     .mobileMenu.open { display:flex; }
     .mobileMenu img { width:56px; height:auto; border-radius:8px; cursor:pointer; }
 
-    /* Sticky icons for mobile (left column) */
+    /* Sticky icons for mobile - default hidden, will open only with hamburger */
     .stickyMobile {
       position: fixed;
       left: 10px;
       top: 120px; /* más abajo que la barra rosa */
-      display: none; /* se muestra en pantallas pequeñas con media query */
+      display: none; /* ahora controlado por JS (open class) */
       flex-direction: column;
       gap: 18px;
       z-index: 40;
       align-items:flex-start;
     }
+    .stickyMobile.open { display:flex; }
     .stickyMobile a { display:block; }
     .stickyMobile img { width:58px; height:auto; display:block; border-radius:10px; filter: drop-shadow(0 0 6px #ff33cc) drop-shadow(0 0 12px #ff33cc); transition:transform .18s,filter .18s; }
     .stickyMobile img:hover { transform:scale(1.12) rotate(-2deg); filter: drop-shadow(0 0 10px #ff33cc) drop-shadow(0 0 20px #ff66ff); }
@@ -131,7 +132,6 @@
       text-align: center;
       overflow: hidden;
     }
-    /* neon border glow using pseudo element (no neon on stickers inside) */
     .payPopup::before {
       content: "";
       position: absolute;
@@ -161,7 +161,6 @@
     .qrNumber { font-weight:700; color:#333; margin-top:6px; font-size:15px; }
     .copyBtn { margin-top:8px; display:inline-block; background:#ff3399; color:white; padding:8px 12px; border-radius:8px; font-weight:600; cursor:pointer; border:none; }
 
-    /* small tweaks */
     .payPopup .hint { color:#888; margin-top:6px; font-size:13px; }
 
     /* Responsive tweaks: make calendar smaller and readable on phones */
@@ -175,8 +174,7 @@
       nav { gap:6px; }
       /* hide desktop sidebar on small screens */
       .sidebar { display: none; }
-      .stickyMobile { display:flex; } /* show our sticky icons on mobile */
-      .mobileMenu { display: none; } /* we use sticky instead */
+      /* stickyMobile will be shown only when hamburger toggles 'open' */
     }
 
     @media (max-width: 600px) {
@@ -236,7 +234,9 @@
 
     <!-- mobile overlay + menu -->
     <div class="mobileOverlay" id="mobileOverlay" aria-hidden="true"></div>
-    <div class="mobileMenu" id="mobileMenu" aria-hidden="true">
+
+    <!-- mobileMenu is kept but not used as the visible sticker column (legacy) -->
+    <div class="mobileMenu" id="mobileMenu" aria-hidden="true" style="display:none">
       <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
       <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
       <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
@@ -251,7 +251,7 @@
       <a href="#" id="desktopPaymentBtn" title="Pagos"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos"></a>
     </div>
 
-    <!-- Sticky icons for mobile -->
+    <!-- Sticky icons for mobile (hidden until hamburger toggled) -->
     <div class="stickyMobile" id="stickyMobile" aria-hidden="true">
       <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
       <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
@@ -438,6 +438,8 @@
     const mobilePaymentBtn = document.getElementById('mobilePaymentBtn');
     const desktopPaymentBtn = document.getElementById('desktopPaymentBtn');
 
+    const stickyMobile = document.getElementById('stickyMobile');
+
     // state
     let viewDate = new Date();
     let eventsCache = []; // all events listened in real time
@@ -457,7 +459,6 @@
     function linkify(text) {
       if(!text) return '';
       let t = escapeHtml(text);
-      // simple url regex for http(s) and www
       const urlRegex = /((https?:\/\/|www\.)[^\s<]+)/g;
       return t.replace(urlRegex, function(url){
         let href = url;
@@ -468,13 +469,11 @@
 
     // Toggle sections
     function showSection(name){
-      // hide all
       homeSection.style.display = 'none';
       calendarAside.style.display = 'none';
       sorteoSection.style.display = 'none';
       momentosSection.style.display = 'none';
       usersPanel.style.display = 'none';
-      // show requested
       if(name === 'home'){ homeSection.style.display = 'block'; calendarAside.style.display = 'block'; }
       if(name === 'sorteo'){ sorteoSection.style.display = 'block'; }
       if(name === 'momentos'){ momentosSection.style.display = 'block'; }
@@ -508,7 +507,6 @@
     // ENTER key triggers current action (login or register)
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter'){
-        // avoid Enter when modal open
         if(modalWrap.style.display === 'flex') return;
         if(isRegister) doRegister();
         else doLogin();
@@ -522,7 +520,6 @@
       if(!email || !password) { alert('Completa correo y contraseña'); return; }
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        // onAuthStateChanged will handle UI
       } catch(err){
         console.error(err);
         document.getElementById('error').style.display = 'block';
@@ -538,10 +535,8 @@
       if(!email || !password || !username){ alert('Completa todos los campos'); return; }
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        // create user doc with uid as id
         await setDoc(doc(db,'users',cred.user.uid), { uid: cred.user.uid, email, username, role: 'user', suscriptor: false, createdAt: new Date().toISOString() });
         alert('Registrado. Inicia sesión.');
-        // switch back to login form
         isRegister = false;
         newUserEl.style.display = 'none';
         registerBtn.style.display = 'none';
@@ -562,7 +557,6 @@
     });
 
     // ---------- Real-time listeners ----------
-    // Users listener (admin)
     let usersUnsub = null;
     function startUsersListener(){
       if(usersUnsub) return;
@@ -575,32 +569,24 @@
           div.className = 'userRow';
           const left = document.createElement('div'); left.innerText = `${u.username || u.email} — ${u.role || 'user'} ${u.suscriptor ? ' (Suscriptor)' : ''}`;
           const right = document.createElement('div');
-
-          // don't let admin modify themselves
           if(currentUser && currentUser.uid !== snap.id){
-            // Admin button
             const adminBtn = document.createElement('button');
             adminBtn.textContent = u.role === 'admin' ? 'Quitar admin' : 'Hacer admin';
             adminBtn.className = u.role === 'admin' ? 'btn-remove-admin' : 'btn-admin';
             adminBtn.onclick = async ()=> {
-              try {
-                await updateDoc(doc(db,'users', snap.id), { role: u.role === 'admin' ? 'user' : 'admin' });
-              } catch(err){ console.error(err); alert('Error actualizando rol: '+err.message); }
+              try { await updateDoc(doc(db,'users', snap.id), { role: u.role === 'admin' ? 'user' : 'admin' }); }
+              catch(err){ console.error(err); alert('Error actualizando rol: '+err.message); }
             };
             right.appendChild(adminBtn);
-
-            // Suscriptor button
             const subsBtn = document.createElement('button');
             subsBtn.textContent = u.suscriptor ? 'Quitar Suscriptor' : 'Dar Suscriptor';
             subsBtn.className = u.suscriptor ? 'btn-remove-subscriber' : 'btn-subscriber';
             subsBtn.onclick = async ()=> {
-              try {
-                await updateDoc(doc(db,'users', snap.id), { suscriptor: !u.suscriptor });
-              } catch(err){ console.error(err); alert('Error actualizando suscriptor: '+err.message); }
+              try { await updateDoc(doc(db,'users', snap.id), { suscriptor: !u.suscriptor }); }
+              catch(err){ console.error(err); alert('Error actualizando suscriptor: '+err.message); }
             };
             right.appendChild(subsBtn);
           }
-
           div.appendChild(left); div.appendChild(right);
           usersList.appendChild(div);
         });
@@ -634,21 +620,17 @@
       const end = endOfMonth(viewDate);
       const monthName = viewDate.toLocaleString('es-ES',{month:'long', year:'numeric'});
       monthTitle.innerText = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
       const startWeekday = (start.getDay() + 6) % 7;
       const days = end.getDate();
-
       for (let i=0;i<startWeekday;i++){
         const empty = document.createElement('div'); empty.className='calCell'; empty.style.background='transparent';
         calGrid.appendChild(empty);
       }
-
       for (let d=1; d<=days; d++){
         const dateObj = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
         const iso = toISODate(dateObj);
         const cell = document.createElement('div'); cell.className='calCell';
         const dayNum = document.createElement('div'); dayNum.className='dayNum'; dayNum.innerText = d; cell.appendChild(dayNum);
-
         const evs = eventsCache.filter(e => e.date === iso);
         if (evs.length>0) {
           cell.classList.add('hasEvent');
@@ -656,12 +638,10 @@
           list.style.marginTop='6px';
           list.style.fontSize='13px';
           list.style.color='#333';
-          // show up to 2 titles
           list.innerHTML = evs.slice(0,2).map(e => `<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(e.title)}</div>`).join('');
           cell.appendChild(list);
           const dot = document.createElement('div'); dot.className='eventDot'; cell.appendChild(dot);
         }
-
         cell.addEventListener('click', ()=> openDayModal(dateObj));
         calGrid.appendChild(cell);
       }
@@ -672,7 +652,6 @@
       modalWrap.style.display = 'flex';
       modalDayTitle.innerText = `Eventos — ${dateObj.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
       modalContent.innerHTML = '';
-
       const iso = toISODate(dateObj);
       const evs = eventsCache.filter(e => e.date === iso);
       if(evs.length === 0) modalContent.innerHTML = `<p style="color:#666">No hay eventos para este día.</p>`;
@@ -681,26 +660,20 @@
           const div = document.createElement('div'); div.className='eventItem';
           const title = document.createElement('div'); title.style.fontWeight='700'; title.innerText = ev.title;
           const desc = document.createElement('div');
-          // render description with clickable links
           desc.style.marginTop = '6px';
           desc.innerHTML = linkify(ev.description || '');
           div.appendChild(title); div.appendChild(desc);
-
           if(currentUserRole === 'admin'){
             const del = document.createElement('button'); del.className='btn'; del.style.background='#ff4444'; del.style.marginTop='8px'; del.innerText='Eliminar evento';
             del.onclick = async ()=> {
               if(!confirm('¿Eliminar evento?')) return;
-              try {
-                await deleteDoc(doc(db,'events', ev.id));
-              } catch(err){ console.error(err); alert('Error: '+err.message); }
+              try { await deleteDoc(doc(db,'events', ev.id)); } catch(err){ console.error(err); alert('Error: '+err.message); }
             };
             div.appendChild(del);
           }
-
           modalContent.appendChild(div);
         });
       }
-
       if(currentUserRole === 'admin'){
         addFormWrap.style.display = 'block';
         evDate.value = iso;
@@ -708,10 +681,7 @@
     }
 
     modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; });
-
-    modalWrap.addEventListener('click', (e)=> {
-      if (e.target === modalWrap) modalWrap.style.display='none';
-    });
+    modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; });
 
     // add event (admin only)
     addEventForm.addEventListener('submit', async (ev)=>{
@@ -726,7 +696,6 @@
         evTitle.value=''; evDesc.value='';
       } catch(err){ console.error(err); alert('Error guardando: '+err.message); }
     });
-
     cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display='none'; modalWrap.style.display='none'; });
 
     // prev/next month
@@ -743,7 +712,6 @@
     onAuthStateChanged(auth, async (user)=>{
       currentUser = user;
       if(user){
-        // read or create user doc (id = uid)
         let role = 'user';
         let username = user.email;
         try {
@@ -753,30 +721,22 @@
             role = data.role || 'user';
             username = data.username || user.email.split('@')[0];
           } else {
-            // default admin for your email
             const defaultRole = (user.email === 'jgalindoduvan@gmail.com') ? 'admin' : 'user';
             await setDoc(doc(db,'users', user.uid), { uid: user.uid, email: user.email, username: user.email.split('@')[0], role: defaultRole, suscriptor: false, createdAt: new Date().toISOString() });
             role = defaultRole;
             username = user.email.split('@')[0];
           }
         } catch(err){ console.error('Error leyendo/creando user doc:', err); }
-
         currentUserRole = role;
         loginScreen.style.display='none';
         mainContent.style.display='block';
         displayName.innerText = `Hola, ${username} 👋`;
         roleMsg.innerText = currentUserRole === 'admin' ? 'Has ingresado como Administrador ✅' : 'Has ingresado como Usuario 👤';
-
         btnUsers.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
         usersPanel.style.display = 'none';
-
-        // start listeners according to role
         startEventsListener();
-        if(currentUserRole === 'admin') startUsersListener();
-        else stopUsersListener();
-
+        if(currentUserRole === 'admin') startUsersListener(); else stopUsersListener();
         addEventBtn.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
-
         renderCalendar();
       } else {
         loginScreen.style.display='block';
@@ -787,13 +747,10 @@
       }
     });
 
-    // small accessibility: focus email on load
     emailEl.focus();
 
-    // USERS view (admin)
     function showUsersSection(){
       usersPanel.style.display = 'block';
-      // ensure listener is running
       if(!usersUnsub) startUsersListener();
     }
     btnUsers.addEventListener('click', ()=> {
@@ -806,74 +763,63 @@
     // helper: initial render of calendar
     renderCalendar();
 
-    // ---------- Mobile menu logic ----------
-    function openMobileMenu(){
-      mobileMenu.classList.add('open');
+    // ---------- Mobile menu (now: stickyMobile) ----------
+    function openMobileSticky(){
+      stickyMobile.classList.add('open');
       mobileOverlay.classList.add('open');
-      mobileMenu.setAttribute('aria-hidden','false');
       mobileOverlay.setAttribute('aria-hidden','false');
     }
-    function closeMobileMenu(){
-      mobileMenu.classList.remove('open');
+    function closeMobileSticky(){
+      stickyMobile.classList.remove('open');
       mobileOverlay.classList.remove('open');
-      mobileMenu.setAttribute('aria-hidden','true');
       mobileOverlay.setAttribute('aria-hidden','true');
     }
-    function toggleMobileMenu() {
-      mobileMenu.classList.toggle('open');
-      mobileOverlay.classList.toggle('open');
+    function toggleMobileSticky() {
+      if(stickyMobile.classList.contains('open')) closeMobileSticky();
+      else openMobileSticky();
     }
 
-    hamburgerBtn.addEventListener('click', toggleMobileMenu);
-    hamburgerBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMobileMenu(); }});
-    mobileOverlay.addEventListener('click', closeMobileMenu);
+    hamburgerBtn.addEventListener('click', toggleMobileSticky);
+    hamburgerBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMobileSticky(); }});
+    mobileOverlay.addEventListener('click', closeMobileSticky);
 
-    // close mobile menu when clicking any mobile sticker (improves UX)
-    Array.from(mobileMenu.querySelectorAll('a')).forEach(a => {
-      a.addEventListener('click', ()=> setTimeout(closeMobileMenu, 120));
+    // close mobile sticky when clicking any link inside it
+    Array.from(stickyMobile.querySelectorAll('a')).forEach(a => {
+      a.addEventListener('click', ()=> setTimeout(closeMobileSticky, 120));
     });
 
-    // ensure mobile menu closes when modal opens (avoid stacking)
+    // ensure mobile sticky closes when modal opens (avoid stacking)
     const observer = new MutationObserver(()=> {
-      if(modalWrap.style.display === 'flex') closeMobileMenu();
+      if(modalWrap.style.display === 'flex') closeMobileSticky();
     });
     observer.observe(modalWrap, { attributes: true, attributeFilter: ['style'] });
+
+    // close sticky if window resized to desktop
+    window.addEventListener('resize', ()=> {
+      if(window.innerWidth > 900) closeMobileSticky();
+    });
 
     // ---------- Payment popup logic ----------
     const PAYPAL_URL = 'https://www.paypal.com/paypalme/mili437';
     const NEQUI_NUMBER = '3226801768';
-    mobilePaymentBtn?.addEventListener('click', openPayPopup);
-    desktopPaymentBtn?.addEventListener('click', openPayPopup);
+    mobilePaymentBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openPayPopup(); });
+    desktopPaymentBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openPayPopup(); });
 
-    function openPayPopup(e){
-      e?.preventDefault();
-      // show popup main
+    function openPayPopup(){
       payMain.style.display = 'flex';
       qrView.style.display = 'none';
       payWrap.style.display = 'flex';
       payWrap.setAttribute('aria-hidden','false');
+      // when pop-up opens, ensure mobile sticky closed to avoid overlap
+      closeMobileSticky();
     }
-    function closePayPopup(){
-      payWrap.style.display = 'none';
-      payWrap.setAttribute('aria-hidden','true');
-    }
+    function closePayPopup(){ payWrap.style.display = 'none'; payWrap.setAttribute('aria-hidden','true'); }
     payClose.addEventListener('click', closePayPopup);
     payWrap.addEventListener('click', (ev)=>{ if(ev.target === payWrap) closePayPopup(); });
 
-    // Paypal: open in new tab
-    paypalBtn.addEventListener('click', ()=> {
-      window.open(PAYPAL_URL, '_blank', 'noopener');
-    });
-
-    // Nequi: show qr view inside popup
-    nequiBtn.addEventListener('click', ()=> {
-      payMain.style.display = 'none';
-      qrView.style.display = 'block';
-    });
-    payBack.addEventListener('click', ()=> {
-      qrView.style.display = 'none';
-      payMain.style.display = 'flex';
-    });
+    paypalBtn.addEventListener('click', ()=> { window.open(PAYPAL_URL, '_blank', 'noopener'); });
+    nequiBtn.addEventListener('click', ()=> { payMain.style.display = 'none'; qrView.style.display = 'block'; });
+    payBack.addEventListener('click', ()=> { qrView.style.display = 'none'; payMain.style.display = 'flex'; });
 
     copyNequi.addEventListener('click', async ()=> {
       try {
@@ -885,20 +831,10 @@
       }
     });
 
-    // ensure sticky icons are visible on mobile load
-    function checkStickyVisibility(){
-      if(window.innerWidth <= 900){
-        document.getElementById('stickyMobile').style.display = 'flex';
-      } else {
-        document.getElementById('stickyMobile').style.display = 'none';
-      }
-    }
-    window.addEventListener('resize', checkStickyVisibility);
-    checkStickyVisibility();
-
   </script>
 </body>
 </html>
+
 
 
 
