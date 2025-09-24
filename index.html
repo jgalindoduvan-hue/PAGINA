@@ -1,4 +1,3 @@
-<!-- PARTE 1 - Pegar primero -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -77,9 +76,31 @@
 
     /* ===== Layout principal ===== */
     #mainContent{display:none;min-height:100vh}
-    .layout{display:grid;grid-template-columns:2fr 1fr;gap:20px;padding:20px}
+    /* mainBox: cuadro central con neon en desktop */
+    .mainBox {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 18px;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+      position: relative;
+    }
+    .layout{display:grid;grid-template-columns:2fr 1fr;gap:20px;padding:0}
     section,aside{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
     aside{min-height:260px;display:flex;flex-direction:column;gap:12px;align-items:stretch}
+
+    /* neon border for mainBox on desktop */
+    @media (min-width: 900px) {
+      .mainBox {
+        border: 3px solid transparent;
+        animation: neonBorderMain 3s infinite alternate;
+      }
+      @keyframes neonBorderMain {
+        0% { box-shadow: 0 0 14px #ff4de1, 0 0 26px #ff4de1, 0 0 36px #d633ff; border-color: #ff4de1; }
+        100% { box-shadow: 0 0 14px #d633ff, 0 0 26px #ff4de1, 0 0 36px #ff4de1; border-color: #d633ff; }
+      }
+    }
 
     /* ===== Sidebar redes (desktop) ===== */
     .sidebar{
@@ -98,7 +119,7 @@
     .calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
     .monthTitle{font-weight:700;font-size:18px}
     .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
-    .calCell{min-height:72px;padding:6px;border-radius:8px;background:#fafafa;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:transform .08s;overflow:hidden}
+    .calCell{min-height:58px;padding:6px;border-radius:8px;background:#fafafa;display:flex;flex-direction:column;justify-content:flex-start;cursor:pointer;transition:transform .08s;overflow:hidden}
     .calCell:hover{transform:translateY(-3px)}
     .calCell .dayNum{font-weight:700;opacity:.9}
     .calCell.event{background:linear-gradient(180deg,#fff0fb,#fff)}
@@ -106,13 +127,16 @@
     .calCell .eventDot{height:8px;width:8px;border-radius:50%;background:#ff66cc;margin-top:auto}
     .calControls{display:flex;gap:8px;align-items:center}
 
+    /* make day boxes more compact */
+    .calendar-day { width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; }
+
     /* boton admin agregar evento */
     .btn{background:#ff3399;color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
     .btn.secondary{background:#fff;color:#ff3399;border:2px solid #ff99cc}
 
     /* ===== Modal (dia events + add) ===== */
-    .modalWrap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:60}
-    .modal{background:#fff;padding:16px;border-radius:10px;width:min(720px,95%);max-height:86vh;overflow:auto}
+    .modalWrap{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:2600}
+    .modal{background:#fff;padding:16px;border-radius:10px;width:min(820px,95%);max-height:86vh;overflow:auto}
     .modal h3{margin:0 0 8px}
     .modal .eventItem{padding:10px;border-radius:8px;border:1px solid #f0e6f3;margin-bottom:8px}
     .modal .closeBtn{background:#eee;border:none;padding:8px 10px;border-radius:8px;cursor:pointer}
@@ -134,24 +158,19 @@
     /* ===== Momentos: galería y upload ===== */
     .momentsHeader { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .uploadWrap { margin-top:12px; background:#fff0fb; padding:12px; border-radius:10px; border:1px solid #ffdee9; }
-    .momentsGrid { margin-top:14px; display:grid; gap:12px; grid-template-columns:repeat(2, 1fr); } /* 2 cols -> 2x2 layout */
+    .momentsGrid { margin-top:14px; display:grid; gap:12px; }
     /* grid responsive: we'll set columns in JS based on width, but provide default */
-    .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; margin-left:36px; } /* push right a little so stickers no tapon */
-    .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee; display:block; }
+    .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
+    .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee }
     .momMeta { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; color:#333 }
     .momText { font-size:13px; color:#444; max-height:48px; overflow:hidden; text-overflow:ellipsis; }
-    .momActions { display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap }
+    .momActions { display:flex; gap:8px; align-items:center; margin-top:6px }
     .likeBtn { background:transparent; border:1px solid #ff99cc; padding:6px 8px; border-radius:8px; cursor:pointer }
     .approveBtn { background:#46c46b; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
     .rejectBtn { background:#ff4444; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
     .moreDots { background:transparent; border:none; cursor:pointer; font-weight:700 }
 
-    /* progress */
-    .uploadProgressWrap { display:flex; align-items:center; gap:10px; margin-top:8px; }
-    progress#uploadProgress { width:220px; height:12px; border-radius:8px; overflow:hidden; }
-    .progressText { font-size:13px; color:#333; min-width:48px; text-align:right; }
-
-    /* pagination */
+    /* pager */
     .pager { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:12px; }
     .pager button { padding:6px 10px; border-radius:8px; background:#fff; border:1px solid #ffd8ee; cursor:pointer; }
 
@@ -199,26 +218,6 @@
 
     .payPopup .hint { color:#888; margin-top:6px; font-size:13px; }
 
-    /* Neon box for desktop center (the black rectangle you drew) */
-    .centerBox {
-      max-width:1050px;
-      margin: 18px auto;
-      padding: 18px;
-      border-radius: 14px;
-      background: #fff;
-      box-shadow: 0 6px 30px rgba(0,0,0,.06);
-      position: relative;
-      border: 1px solid rgba(255,102,204,.06);
-    }
-    @media (min-width:1024px){
-      .centerBox::before{
-        content:'';
-        position:absolute; inset:-6px; border-radius:18px;
-        background: linear-gradient(90deg, rgba(255,20,147,0.12), rgba(255,102,204,0.12));
-        filter: blur(6px); z-index:-1;
-      }
-    }
-
     /* Responsive tweaks: make calendar smaller and readable on phones */
     @media (max-width: 900px) {
       .layout { grid-template-columns: 1fr; }
@@ -231,7 +230,7 @@
       /* hide desktop sidebar on small screens */
       .sidebar { display: none; }
       /* stickyMobile will be shown only when hamburger toggles 'open' */
-      .momentsGrid { grid-template-columns:repeat(2, 1fr); }
+      .mainBox { margin: 12px; padding: 12px; }
     }
 
     @media (max-width: 600px) {
@@ -240,22 +239,47 @@
       .calCell .dayNum { font-size:12px; }
       .monthTitle { font-size:16px; }
       #loginBox { left:12px; top:120px; width:260px; }
-      .momentsGrid { grid-template-columns:repeat(2, 1fr); }
-      .momCard { margin-left: 12px; }
+      .hamburger { display:flex; }
+      .stickyMobile { left: 6px; top: 90px; }
     }
 
     @media (max-width: 420px) {
       .calCell { min-height:42px; padding:3px; }
       .calCell .dayNum { font-size:11px; }
       nav img { height:58px; }
-      .momentsGrid { grid-template-columns:repeat(2, 1fr); }
-      .momCard { margin-left: 8px; }
     }
 
-    /* moment card specific */
-    .moment-card img, .moment-card video { border-radius:8px; display:block; width:100%; height:auto; }
-    .like-btn{ background:transparent; border:1px solid #ff99cc; border-radius:8px; padding:6px 8px; cursor:pointer; }
-    .reloadBtn { background:#fff; border:1px solid #eee; padding:6px; border-radius:8px; cursor:pointer; }
+    /* ========================= NEON styles for cards and like button ========================= */
+    .moment-card {
+      border: 3px solid transparent;
+      border-radius: 12px;
+      animation: neonBreath 4s infinite;
+      padding: 10px;
+      transition: transform .12s;
+      background: #fff;
+    }
+    .moment-card:hover { transform: translateY(-6px); }
+
+    @keyframes neonBreath {
+      0% { box-shadow: 0 0 8px #ff4de1; border-color: #ff4de1; }
+      50% { box-shadow: 0 0 20px #d633ff; border-color: #d633ff; }
+      100% { box-shadow: 0 0 8px #ff4de1; border-color: #ff4de1; }
+    }
+
+    .like-button { border-radius:8px; padding:6px 8px; border:1px solid #ffd8ee; background:#fff; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+    .like-button i { transition: all 0.25s ease; color: #ff66cc; }
+    .like-button.liked i { color: #ff0000; transform: scale(1.25); }
+
+    /* Prevent stickers overlapping grid: add left padding area */
+    .mainBox { padding-left: 46px; } /* leave room for sticker column visually */
+
+    /* upload progress bar */
+    .uploadProgressWrap { width:100%; margin-top:8px; background:#ffeef8; border-radius:8px; overflow:hidden; border:1px solid #ffd8ee; display:none; }
+    .uploadProgressBar { height:8px; width:0%; background:linear-gradient(90deg,#ff66cc,#d633ff); transition: width .2s ease; }
+
+    /* small refresh button near title */
+    .refreshBtn { border:1px solid #eee; border-radius:8px; padding:6px; background:#fff; cursor:pointer; margin-right:8px; }
+
   </style>
 </head>
 <body>
@@ -325,8 +349,8 @@
       <a href="#" id="mobilePaymentBtn" title="Pagos"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos"></a>
     </div>
 
-    <!-- CENTER BOX (desktop) -->
-    <div class="centerBox">
+    <!-- Put the "mainBox" that centers content on desktop -->
+    <div class="mainBox" id="mainBox">
 
       <div class="layout">
         <!-- HOME / INICIO -->
@@ -353,61 +377,60 @@
 
           <small style="display:block;margin-top:10px;color:#666">Haz clic en un día para ver sus eventos.</small>
         </aside>
-
-        <!-- SORTEO -->
-        <section id="sorteoSection" style="display:none">
-          <h2>Sorteos</h2>
-          <p>Aquí estará la ruleta del sorteo (sección separada).</p>
-        </section>
-
-        <!-- MOMENTOS -->
-        <section id="momentosSection" style="display:none">
-          <h2>Momentos de Mili</h2>
-
-          <!-- Upload + gallery controls -->
-          <div class="momentsHeader">
-            <div>
-              <small style="color:#666">Sube fotos (JPG/PNG) o videos (hasta 5 min). Las publicaciones quedan pendientes hasta aprobación.</small>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <button id="reloadMoments" class="reloadBtn" title="Recargar lista">⟳</button>
-              <button id="openAddMomentBtn" class="btn" style="display:none">Añadir Foto/Video</button>
-            </div>
-          </div>
-
-          <div id="uploadArea" class="uploadWrap" style="display:none">
-            <form id="momentForm">
-              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                <input type="file" id="momentFile" accept="image/*,video/*">
-                <input type="text" id="momentText" placeholder="Texto / descripción (opcional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
-              </div>
-              <div style="display:flex;gap:8px;margin-top:8px">
-                <button type="submit" class="btn" id="submitMomentBtn">Subir</button>
-                <button type="button" id="cancelMoment" class="btn secondary">Cancelar</button>
-              </div>
-
-              <div class="uploadProgressWrap" style="display:none" id="progressWrap">
-                <progress id="uploadProgress" value="0" max="100"></progress>
-                <div class="progressText" id="progressPercent">0%</div>
-              </div>
-
-              <div style="margin-top:8px;color:#666;font-size:13px">Videos máximo 5 minutos. Imágenes JPG/PNG. Los contenidos quedan pendientes hasta aprobación de un admin.</div>
-            </form>
-          </div>
-
-          <!-- gallery -->
-          <div id="momentsList" class="momentsGrid" aria-live="polite">
-            <!-- cards via JS -->
-          </div>
-
-          <div class="pager" id="momPager" style="display:none">
-            <button id="prevPage">Anterior</button>
-            <div id="pageInfo">1 / 1</div>
-            <button id="nextPage">Siguiente</button>
-          </div>
-
-        </section>
       </div>
+
+      <!-- SORTEO -->
+      <section id="sorteoSection" style="display:none;margin-top:18px">
+        <h2>Sorteos</h2>
+        <p>Aquí estará la ruleta del sorteo (sección separada).</p>
+      </section>
+
+      <!-- MOMENTOS -->
+      <section id="momentosSection" style="display:none;margin-top:18px">
+        <h2>Momentos de Mili</h2>
+
+        <!-- Upload + gallery controls -->
+        <div class="momentsHeader">
+          <div>
+            <small style="color:#666">Sube fotos (JPG/PNG) o videos (hasta 5 min). Las publicaciones quedan pendientes hasta aprobación.</small>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="refreshBtn" id="refreshMoments" title="Actualizar lista">⟳</button>
+            <button id="openAddMomentBtn" class="btn" style="display:inline-block">Añadir Foto/Video</button>
+          </div>
+        </div>
+
+        <div id="uploadArea" class="uploadWrap" style="display:none">
+          <form id="momentForm">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="file" id="momentFile" accept="image/*,video/*">
+              <input type="text" id="momentText" placeholder="Texto / descripción (opcional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="submit" class="btn" id="submitUpload">Subir</button>
+              <button type="button" id="cancelMoment" class="btn secondary">Cancelar</button>
+            </div>
+
+            <div class="uploadProgressWrap" id="uploadProgressWrap">
+              <div class="uploadProgressBar" id="uploadProgressBar"></div>
+            </div>
+
+            <div style="margin-top:8px;color:#666;font-size:13px">Videos máximo 5 minutos. Imágenes JPG/PNG. Los contenidos quedan pendientes hasta aprobación de un admin.</div>
+          </form>
+        </div>
+
+        <!-- gallery -->
+        <div id="momentsList" class="momentsGrid" aria-live="polite" style="margin-top:12px">
+          <!-- cards via JS -->
+        </div>
+
+        <div class="pager" id="momPager" style="display:none">
+          <button id="prevPage">Anterior</button>
+          <div id="pageInfo">1 / 1</div>
+          <button id="nextPage">Siguiente</button>
+        </div>
+
+      </section>
 
       <!-- Users panel -->
       <div class="usersPanel" id="usersPanel" style="display:none">
@@ -415,7 +438,7 @@
         <div id="usersList">Cargando usuarios...</div>
       </div>
 
-    </div> <!-- /centerBox -->
+    </div> <!-- end mainBox -->
 
     <!-- Payment popup (mini cuadro) -->
     <div class="payWrap" id="payWrap" aria-hidden="true">
@@ -463,29 +486,15 @@
         </div>
       </div>
     </div>
-
-    <!-- MEDIA VIEWER modal (image/video) -->
-    <div class="modalWrap" id="mediaModal" style="display:none;z-index:3000;">
-      <div class="modal" style="max-width:900px; width:95%; position:relative;">
-        <button class="modal-close closeBtn" style="position:absolute;right:10px;top:8px;">X</button>
-        <div id="mediaContainer" style="display:flex;flex-direction:column;gap:12px;">
-          <img id="modalImg" src="" alt="" style="display:none;width:100%;border-radius:10px;object-fit:contain;max-height:75vh;">
-          <video id="modalVideo" src="" style="display:none;width:100%;border-radius:10px;max-height:75vh;" controls></video>
-        </div>
-      </div>
-    </div>
-
-  </div> <!-- /mainContent -->
-<!-- PARTE 2 - Pegar segundo (continúa/termina JS y HTML) -->
   <!-- FIREBASE + LÓGICA + Momentos -->
   <script type="module">
-    // --- firebase imports (existing ones kept + resumable upload) ---
+    // --- firebase imports (existing ones kept + storage & resumable upload) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
       getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy, arrayUnion, arrayRemove, serverTimestamp, where, limit
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-    import { getStorage, ref as sref, uploadBytesResumable, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+    import { getStorage, ref as sref, uploadBytes, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
     // ====== TU CONFIG DE FIREBASE ======
     const firebaseConfig = {
@@ -580,17 +589,11 @@
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const pageInfo = document.getElementById('pageInfo');
-    const reloadMomentsBtn = document.getElementById('reloadMoments');
+    const refreshMoments = document.getElementById('refreshMoments');
 
-    const progressWrap = document.getElementById('progressWrap');
-    const uploadProgress = document.getElementById('uploadProgress');
-    const progressPercent = document.getElementById('progressPercent');
-
-    // media modal refs
-    const mediaModal = document.getElementById('mediaModal');
-    const modalImg = document.getElementById('modalImg');
-    const modalVideo = document.getElementById('modalVideo');
-    const modalCloseBtn = document.querySelector('.modal-close');
+    const uploadProgressWrap = document.getElementById('uploadProgressWrap');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const submitUpload = document.getElementById('submitUpload');
 
     // state
     let viewDate = new Date();
@@ -712,11 +715,7 @@
     registerBtn.addEventListener('click', doRegister);
 
     // LOGOUT
-    logoutBtn.addEventListener('click', async ()=>{
-      if (!currentUser) return;
-      if (!confirm('¿Cerrar sesión?')) return;
-      await signOut(auth);
-    });
+    logoutBtn.addEventListener('click', async ()=>{ if (!currentUser) return; if (!confirm('¿Cerrar sesión?')) return; await signOut(auth); });
 
     // ---------- Real-time listeners ----------
     let usersUnsub = null;
@@ -804,7 +803,7 @@
       for (let d=1; d<=days; d++){
         const dateObj = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
         const iso = toISODate(dateObj);
-        const cell = document.createElement('div'); cell.className='calCell';
+        const cell = document.createElement('div'); cell.className='calCell calendar-day';
         const dayNum = document.createElement('div'); dayNum.className='dayNum'; dayNum.innerText = d; cell.appendChild(dayNum);
         const evs = eventsCache.filter(e => e.date === iso);
         if (evs.length>0) {
@@ -825,6 +824,7 @@
     // Open modal for day (unchanged logic, but descriptions are linkified)
     function openDayModal(dateObj){
       modalWrap.style.display = 'flex';
+      modalWrap.setAttribute('aria-hidden','false');
       modalDayTitle.innerText = `Eventos — ${dateObj.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
       modalContent.innerHTML = '';
       const iso = toISODate(dateObj);
@@ -855,8 +855,8 @@
       } else addFormWrap.style.display = 'none';
     }
 
-    modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; });
-    modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; });
+    modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; modalWrap.setAttribute('aria-hidden','true'); });
+    modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; modalWrap.setAttribute('aria-hidden','true'); });
 
     // add event (admin only) unchanged
     addEventForm.addEventListener('submit', async (ev)=>{
@@ -869,9 +869,11 @@
       try {
         await addDoc(collection(db,'events'), { title, description, date, createdAt: new Date().toISOString() });
         evTitle.value=''; evDesc.value='';
+        addFormWrap.style.display='none';
+        modalWrap.style.display='none';
       } catch(err){ console.error(err); alert('Error guardando: '+err.message); }
     });
-    cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display = 'none'; modalWrap.style.display = 'none'; });
+    cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display='none'; modalWrap.style.display='none'; });
 
     // prev/next month
     prevMonthBtn.addEventListener('click', ()=> { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1); renderCalendar(); });
@@ -1069,8 +1071,8 @@
       const start = (currentMomPage-1) * perPage;
       const pageItems = visible.slice(start, start + perPage);
 
-      // grid columns responsive -> 2 columns (2x2 layout)
-      const cols = 2;
+      // grid columns responsive
+      const cols = (perPage === 4) ? 2 : 2; // use 2 columns in layout but items sized to show 2x2 per page appearance
       momentsList.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
       momentsList.innerHTML = '';
@@ -1079,26 +1081,33 @@
       } else {
         pageItems.forEach(m => {
           const card = document.createElement('div'); card.className = 'momCard moment-card';
-          // media
+          // ensure card has enough left margin to avoid stickers overlay on left side
+          card.style.marginLeft = '8px';
+          const thumbWrap = document.createElement('div'); thumbWrap.style.position='relative'; thumbWrap.style.overflow='hidden';
           const isVideo = (m.contentType || '').startsWith('video');
           if(!m.url){
-            const placeholder = document.createElement('div'); placeholder.style.height='160px'; placeholder.style.background='#eee'; card.appendChild(placeholder);
+            const placeholder = document.createElement('div'); placeholder.style.height='160px'; placeholder.style.background='#eee'; placeholder.style.borderRadius='8px';
+            thumbWrap.appendChild(placeholder);
           } else {
             if(isVideo){
-              const vid = document.createElement('video'); vid.controls = true; vid.src = m.url; vid.style.width='100%'; vid.style.maxHeight='320px'; vid.style.borderRadius='8px';
-              vid.classList.add('moment-media');
-              card.appendChild(vid);
+              const video = document.createElement('video');
+              video.controls = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='320px'; video.style.borderRadius='8px';
+              thumbWrap.appendChild(video);
             } else {
-              const img = document.createElement('img'); img.className='momThumb moment-media'; img.src = m.url; img.alt = m.text || 'Foto'; img.style.objectFit='cover';
+              const img = document.createElement('img'); img.className='momThumb'; img.src = m.url;
+              img.style.borderRadius = '8px';
+              thumbWrap.appendChild(img);
+              // click to open modal viewer
+              img.style.cursor = 'pointer';
               img.addEventListener('click', ()=> openMomentViewer(m));
-              card.appendChild(img);
             }
           }
+          card.appendChild(thumbWrap);
 
           const meta = document.createElement('div'); meta.className = 'momMeta';
           const owner = document.createElement('div'); owner.innerText = m.ownerUsername || m.ownerEmail || 'Usuario';
           const date = document.createElement('div'); date.style.fontSize='12px'; date.style.color='#888';
-          date.innerText = m.createdAt ? (new Date(m.createdAt.seconds ? m.createdAt.toMillis() : m.createdAt).toLocaleString()) : '';
+          date.innerText = (m.createdAt && m.createdAt.seconds) ? (new Date(m.createdAt.seconds*1000)).toLocaleString() : (m.createdAt ? new Date(m.createdAt).toLocaleString() : '');
           meta.appendChild(owner); meta.appendChild(date);
           card.appendChild(meta);
 
@@ -1117,24 +1126,31 @@
           }
           card.appendChild(text);
 
+          // actions
           const actions = document.createElement('div'); actions.className='momActions';
-          const likedBy = Array.isArray(m.likes) ? m.likes : [];
-          const userLiked = currentUser && likedBy.includes(currentUser.uid);
-          const likeBtn = document.createElement('button'); likeBtn.className='likeBtn like-btn';
-          likeBtn.innerText = `❤ ${likedBy.length || 0}`;
-          likeBtn.onclick = async ()=>{
+
+          // like button - local toggling + firestore update
+          const likeBtn = document.createElement('button'); likeBtn.className='like-button';
+          likeBtn.innerHTML = `<i>❤</i> <span>${(m.likes && m.likes.length) || 0}</span>`;
+          // set liked class if current user liked
+          if(currentUser && Array.isArray(m.likes) && m.likes.includes(currentUser.uid)) likeBtn.classList.add('liked');
+          likeBtn.addEventListener('click', async (ev)=> {
+            ev.preventDefault();
             if(!currentUser) { alert('Inicia sesión para dar like'); return; }
             try {
-              if(userLiked) {
-                await updateDoc(doc(db,'moments', m.id), { likes: arrayRemove(currentUser.uid) });
+              const docRef = doc(db,'moments', m.id);
+              const likedBy = Array.isArray(m.likes) ? m.likes.slice() : [];
+              const hasLiked = likedBy.includes(currentUser.uid);
+              if(hasLiked){
+                await updateDoc(docRef, { likes: arrayRemove(currentUser.uid) });
               } else {
-                await updateDoc(doc(db,'moments', m.id), { likes: arrayUnion(currentUser.uid) });
+                await updateDoc(docRef, { likes: arrayUnion(currentUser.uid) });
               }
             } catch(err){ console.error(err); alert('Error al dar like: '+err.message); }
-          };
+          });
           actions.appendChild(likeBtn);
 
-          // admin controls
+          // if admin -> approve/reject
           if(currentUserRole === 'admin'){
             const statusTag = document.createElement('div');
             statusTag.style.padding = '6px 8px'; statusTag.style.borderRadius='8px'; statusTag.style.fontSize='13px';
@@ -1154,14 +1170,17 @@
               actions.appendChild(approveBtn);
             }
 
+            // reject
             const rejectBtn = document.createElement('button'); rejectBtn.className='rejectBtn'; rejectBtn.innerText = 'Rechazar';
             rejectBtn.onclick = async ()=> {
               if(!confirm('Rechazar y eliminar publicación?')) return;
               try {
+                // delete storage object if exists
                 if(m.storagePath){
                   const refToDel = sref(storage, m.storagePath);
                   await deleteObject(refToDel).catch(e => console.warn('No se pudo borrar storage: ', e));
                 }
+                // delete doc
                 await deleteDoc(doc(db,'moments', m.id));
               } catch(err){ console.error(err); alert('Error rechazando: '+err.message); }
             };
@@ -1189,23 +1208,31 @@
       // pager
       if(total > perPage) {
         momPager.style.display = 'flex';
-        pageInfo.innerText = `${currentMomPage} / ${Math.max(1, Math.ceil(total / perPage))} (${total} mostrados)`;
+        pageInfo.innerText = `${currentMomPage} / ${Math.max(1, Math.ceil(total / perPage))} (${total} posts)`;
       } else momPager.style.display = 'none';
     }
 
     function openMomentViewer(m){
-      // open a modal-like view for image/video
-      mediaModal.style.display = 'flex';
-      modalImg.style.display = 'none';
-      modalVideo.style.display = 'none';
+      // open a modal-like view for image/video (re-using modalWrap)
+      modalWrap.style.display = 'flex';
+      modalWrap.setAttribute('aria-hidden','false');
+      modalContent.innerHTML = '';
+      modalDayTitle.innerText = `Momento — ${m.ownerUsername || m.ownerEmail || ''}`;
+      const container = document.createElement('div');
+      container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='12px';
       if((m.contentType||'').startsWith('video')){
-        modalVideo.src = m.url;
-        modalVideo.style.display = 'block';
-        modalVideo.play().catch(()=>{});
+        const video = document.createElement('video');
+        video.controls = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='70vh';
+        container.appendChild(video);
       } else {
-        modalImg.src = m.url;
-        modalImg.style.display = 'block';
+        const img = document.createElement('img'); img.src = m.url; img.style.width='100%'; img.style.maxHeight='70vh'; img.style.objectFit='contain';
+        container.appendChild(img);
       }
+      if(m.text){
+        const p = document.createElement('div'); p.style.padding='8px'; p.style.background='#fff'; p.style.borderRadius='8px'; p.innerHTML = linkify(m.text);
+        container.appendChild(p);
+      }
+      modalContent.appendChild(container);
     }
 
     prevPageBtn.addEventListener('click', ()=> {
@@ -1217,10 +1244,6 @@
       if(currentMomPage < totalPages){ currentMomPage++; renderMoments(); }
     });
 
-    // media modal close behavior
-    modalCloseBtn?.addEventListener('click', ()=> { mediaModal.style.display='none'; modalVideo.pause(); modalVideo.currentTime = 0; });
-    mediaModal?.addEventListener('click', (e)=> { if(e.target === mediaModal){ mediaModal.style.display='none'; modalVideo.pause(); modalVideo.currentTime = 0; }});
-
     // ---------- Upload handler with progress ----------
     momentForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1230,8 +1253,8 @@
       const text = momentText.value.trim();
       if(!file) return alert('Selecciona un archivo');
 
-      // basic file type and length checks
-      const maxVideoSeconds = 60 * 5; // 5 minutes - server side enforced ideally
+      // size/time checks (basic)
+      const maxVideoSeconds = 60 * 5; // 5 minutes - best-effort client-side
       // storage path
       const timestamp = Date.now();
       const storagePath = `moments/${currentUser.uid}/${timestamp}_${file.name}`;
@@ -1239,98 +1262,98 @@
 
       try {
         // show progress UI
-        progressWrap.style.display = 'flex';
-        uploadProgress.value = 0;
-        progressPercent.innerText = '0%';
+        uploadProgressWrap.style.display = 'block';
+        uploadProgressBar.style.width = '0%';
+        submitUpload.disabled = true;
 
-        // upload with resumable so we get progress
+        // Use resumable upload to get progress
         const uploadTask = uploadBytesResumable(fileRef, file);
 
-        uploadTask.on('state_changed', (snapshot)=>{
-          const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-          uploadProgress.value = percent;
-          progressPercent.innerText = percent + '%';
-        }, (error) => {
-          console.error('Upload failed', error);
-          alert('Error subiendo archivo: ' + (error.message || error));
-          progressWrap.style.display = 'none';
-        }, async () => {
-          // success
-          const url = await getDownloadURL(uploadTask.snapshot.ref);
-          // ownerUsername fallback safe
-          const ownerUsername = (currentUserDoc && currentUserDoc.username) ? currentUserDoc.username : (currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Usuario'));
-          await addDoc(collection(db,'moments'), {
-            ownerUid: currentUser.uid,
-            ownerEmail: currentUser.email,
-            ownerUsername,
-            filename: file.name,
-            contentType: file.type,
-            storagePath,
-            url,
-            text: text || '',
-            likes: [],
-            status: (currentUserRole === 'admin') ? 'approved' : 'pending',
-            createdAt: serverTimestamp()
-          });
-          alert(currentUserRole === 'admin' ? 'Archivo subido y aprobado automáticamente.' : 'Archivo subido. Queda pendiente aprobación de un admin.');
-          // reset
-          momentFile.value = ''; momentText.value = '';
-          uploadArea.style.display = 'none';
-          progressWrap.style.display = 'none';
-        });
-
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            uploadProgressBar.style.width = percent + '%';
+          },
+          (error) => {
+            console.error('Error subiendo archivo:', error);
+            alert('Error subiendo archivo: ' + (error.message || error));
+            uploadProgressWrap.style.display = 'none';
+            submitUpload.disabled = false;
+          },
+          async () => {
+            // upload finished
+            const url = await getDownloadURL(fileRef);
+            // generate ownerUsername safely
+            const ownerUsernameSafe = (currentUserDoc && currentUserDoc.username) ? currentUserDoc.username : (currentUser.displayName || currentUser.email.split('@')[0] || '');
+            // add doc to firestore (status pending)
+            await addDoc(collection(db,'moments'), {
+              ownerUid: currentUser.uid,
+              ownerEmail: currentUser.email,
+              ownerUsername: ownerUsernameSafe,
+              filename: file.name,
+              contentType: file.type,
+              storagePath,
+              url,
+              text: text || '',
+              likes: [],
+              status: currentUserRole === 'admin' ? 'approved' : 'pending',
+              createdAt: serverTimestamp()
+            });
+            alert(currentUserRole === 'admin' ? 'Archivo subido y aprobado automáticamente.' : 'Archivo subido. Queda pendiente aprobación de un admin.');
+            // reset form
+            momentFile.value = ''; momentText.value = '';
+            uploadArea.style.display = 'none';
+            uploadProgressWrap.style.display = 'none';
+            uploadProgressBar.style.width = '0%';
+            submitUpload.disabled = false;
+          }
+        );
       } catch(err){
         console.error('Error subiendo archivo:', err);
         alert('Error subiendo archivo: ' + (err.message || err));
-        progressWrap.style.display = 'none';
+        uploadProgressWrap.style.display = 'none';
+        submitUpload.disabled = false;
       }
     });
 
     cancelMoment.addEventListener('click', ()=> {
-      momentFile.value = ''; momentText.value = ''; uploadArea.style.display = 'none'; progressWrap.style.display='none';
+      momentFile.value = ''; momentText.value = ''; uploadArea.style.display = 'none';
     });
 
     openAddMomentBtn.addEventListener('click', ()=> {
       uploadArea.style.display = (uploadArea.style.display === 'block' || uploadArea.style.display === 'flex') ? 'none' : 'block';
+      // ensure focus on file input when opened
+      if(uploadArea.style.display !== 'none') setTimeout(()=> momentFile.focus(), 120);
     });
 
-    // reload button
-    reloadMomentsBtn?.addEventListener('click', ()=> {
+    // refresh button - simply re-render moments
+    refreshMoments.addEventListener('click', ()=> {
       renderMoments();
-      // short visual feedback
-      reloadMomentsBtn.innerText = '⟳';
-      reloadMomentsBtn.disabled = true;
-      setTimeout(()=> { reloadMomentsBtn.disabled = false; }, 600);
     });
 
-    // helper safeOwnerUsername (used when creating doc manually elsewhere)
-    function safeOwnerUsername() {
-      if(currentUserDoc && currentUserDoc.username) return currentUserDoc.username;
-      if(currentUser && currentUser.displayName) return currentUser.displayName;
-      if(currentUser && currentUser.email) return currentUser.email.split('@')[0];
-      return 'Usuario';
-    }
+    // ========================= Like button animation handler (global, for safety) =========================
+    document.addEventListener('click', function(e){
+      const like = e.target.closest('.like-button');
+      if(like){
+        like.classList.toggle('liked');
+      }
+    });
 
     // ========================= end Moments =========================
 
-    // start moments listener only when needed
-    // (we already start in auth handler)
-    // ensure moments rendered if data already present
-    renderMoments();
+    // start moments listener only when needed (we already start in auth handler)
+    // but ensure there is an unsub variable declared earlier (momentsUnsub)
 
-    // Expose some helper fns to console/runtime just in case
-    window.renderMoments = renderMoments;
-    window.toggleUploadForm = ()=> { uploadArea.style.display = uploadArea.style.display === 'none' ? 'block' : 'none'; };
-    window.safeOwnerUsername = safeOwnerUsername;
+    // compute perPage initially and whenever page loads
+    computePerPage();
+
+    // Fix sticky hamburger initial state
+    closeMobileSticky();
+
+    // ensure moments rendered if data already present
+    // (moments listener will call renderMoments when snapshot arrives)
 
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
