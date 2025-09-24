@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -40,7 +40,7 @@
       z-index: 120;
     }
     .mobileOverlay.open {
-      background: transparent; /* sin oscurecer */
+      background: rgba(0,0,0,0.2);
       pointer-events: auto;
     }
 
@@ -132,22 +132,25 @@
 
     /* ===== Momentos: galería y upload ===== */
     .momentsHeader { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .uploadWrap { margin-top:12px; background:#fff0fb; padding:12px; border-radius:10px; border:1px solid #ffdee9; }
+    .uploadWrap { margin-top:12px; background:#fff0fb; padding:12px; border-radius:10px; border:1px solid #ffdee9; position:relative; }
     .momentsGrid { margin-top:14px; display:grid; gap:12px; }
     /* grid responsive: we'll set columns in JS based on width, but provide default */
-    .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
-    .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee }
+    .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; max-width:100%; }
+    .momThumb { width:100%; aspect-ratio: 16/9; object-fit:cover; border-radius:8px; background:#eee; max-height:250px; }
     .momMeta { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; color:#333 }
-    .momText { font-size:13px; color:#444; max-height:48px; overflow:hidden; text-overflow:ellipsis; }
+    .momText { font-size:13px; color:#444; max-height:60px; overflow:hidden; text-overflow:ellipsis; }
     .momActions { display:flex; gap:8px; align-items:center; margin-top:6px }
     .likeBtn { background:transparent; border:1px solid #ff99cc; padding:6px 8px; border-radius:8px; cursor:pointer }
     .approveBtn { background:#46c46b; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
     .rejectBtn { background:#ff4444; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
     .moreDots { background:transparent; border:none; cursor:pointer; font-weight:700 }
 
-    /* pagination */
+    /* pager */
     .pager { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:12px; }
     .pager button { padding:6px 10px; border-radius:8px; background:#fff; border:1px solid #ffd8ee; cursor:pointer; }
+
+    /* small reload badge */
+    .reloadBtn { border:1px solid #ddd; background:#fff; padding:6px; border-radius:8px; cursor:pointer; }
 
     /* Payment popup (mini cuadro con neon borde) */
     .payWrap { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.35); z-index: 2500; }
@@ -214,12 +217,14 @@
       .monthTitle { font-size:16px; }
       .calControls button { padding:6px 8px; font-size:13px; }
       #loginBox { left:12px; top:120px; width:260px; }
+      .momThumb { max-height:180px; }
     }
 
     @media (max-width: 420px) {
       .calCell { min-height:42px; padding:3px; }
       .calCell .dayNum { font-size:11px; }
       nav img { height:58px; }
+      .momentsGrid { gap:10px; }
     }
   </style>
 </head>
@@ -331,7 +336,8 @@
           <div>
             <small style="color:#666">Sube fotos (JPG/PNG) o videos (hasta 5 min). Las publicaciones quedan pendientes hasta aprobación.</small>
           </div>
-          <div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button id="reloadMoments" class="reloadBtn" title="Recargar galería">⟳</button>
             <button id="openAddMomentBtn" class="btn" style="display:none">Añadir Foto/Video</button>
           </div>
         </div>
@@ -479,7 +485,6 @@
     const btnHome = document.getElementById('btnHome');
     const btnSorteo = document.getElementById('btnSorteo');
     const btnMomentos = document.getElementById('btnMomentos');
-    const btnMomentosNav = document.getElementById('btnMomentos');
     const btnUsers = document.getElementById('btnUsers');
     const logoutBtn = document.getElementById('logoutBtn');
 
@@ -520,6 +525,7 @@
     const prevPageBtn = document.getElementById('prevPage');
     const nextPageBtn = document.getElementById('nextPage');
     const pageInfo = document.getElementById('pageInfo');
+    const reloadMomentsBtn = document.getElementById('reloadMoments');
 
     // state
     let viewDate = new Date();
@@ -641,7 +647,7 @@
     registerBtn.addEventListener('click', doRegister);
 
     // LOGOUT
-    logoutBtn.addEventListener('click', async ()=>{
+    logoutBtn.addEventListener('click', async ()=>{ 
       if (!currentUser) return;
       if (!confirm('¿Cerrar sesión?')) return;
       await signOut(auth);
@@ -746,12 +752,13 @@
           cell.appendChild(list);
           const dot = document.createElement('div'); dot.className='eventDot'; cell.appendChild(dot);
         }
+        // click open modal for that day
         cell.addEventListener('click', ()=> openDayModal(dateObj));
         calGrid.appendChild(cell);
       }
     }
 
-    // Open modal for day (unchanged logic, but descriptions are linkified)
+    // Open modal for day
     function openDayModal(dateObj){
       modalWrap.style.display = 'flex';
       modalDayTitle.innerText = `Eventos — ${dateObj.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
@@ -787,7 +794,7 @@
     modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; });
     modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; });
 
-    // add event (admin only) unchanged
+    // add event (admin only)
     addEventForm.addEventListener('submit', async (ev)=>{
       ev.preventDefault();
       if(currentUserRole !== 'admin') return alert('Solo admins pueden añadir eventos');
@@ -819,9 +826,9 @@
         let role = 'user';
         let username = user.email;
         try {
-          const uDoc = await getDoc(doc(db,'users', user.uid));
-          if(uDoc.exists()){
-            const data = uDoc.data();
+          const uDocSnap = await getDoc(doc(db,'users', user.uid));
+          if(uDocSnap.exists()){
+            const data = uDocSnap.data();
             role = data.role || 'user';
             username = data.username || user.email.split('@')[0];
             currentUserDoc = data;
@@ -962,7 +969,7 @@
     // compute perPage based on width
     function computePerPage(){
       if(window.innerWidth <= 600) perPage = 2; // mobile: 2
-      else perPage = 4; // desktop/tablet: 4
+      else perPage = 4; // desktop/tablet: 4 (we show 2x2 grid visually by limiting card size)
     }
     computePerPage();
 
@@ -998,9 +1005,10 @@
       const start = (currentMomPage-1) * perPage;
       const pageItems = visible.slice(start, start + perPage);
 
-      // grid columns responsive
-      const cols = (perPage === 4) ? 4 : 2;
+      // grid columns responsive: show 2 columns for both desktop (visual 2x2) and mobile
+      const cols = (perPage === 4) ? 2 : 2;
       momentsList.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      momentsList.style.gridAutoRows = 'auto';
 
       momentsList.innerHTML = '';
       if(pageItems.length === 0){
@@ -1008,34 +1016,44 @@
       } else {
         pageItems.forEach(m => {
           const card = document.createElement('div'); card.className = 'momCard';
-          const thumb = document.createElement('img'); thumb.className = 'momThumb';
-          // if image or video: show poster or first frame? we'll display image for images and thumbnail for video if url present (browser will show video tag on click)
+          const mediaWrap = document.createElement('div');
+          mediaWrap.style.display='flex';
+          mediaWrap.style.flexDirection='column';
+          mediaWrap.style.gap='8px';
+
           const isVideo = (m.contentType || '').startsWith('video');
-          if(!m.url){
-            thumb.src = ''; thumb.style.background = '#eee';
+          if(isVideo){
+            const video = document.createElement('video');
+            video.src = m.url || '';
+            video.controls = true;
+            video.className = 'momThumb';
+            video.style.maxHeight = '250px';
+            video.style.width = '100%';
+            video.preload = 'metadata';
+            mediaWrap.appendChild(video);
           } else {
-            thumb.src = m.url;
+            const img = document.createElement('img');
+            img.src = m.url || '';
+            img.className = 'momThumb';
+            img.alt = m.filename || 'Imagen';
+            mediaWrap.appendChild(img);
           }
-
-          // clicking thumbnail: open in modal-like big view (simple)
-          thumb.style.cursor = 'pointer';
-          thumb.addEventListener('click', ()=> openMomentViewer(m));
-
-          card.appendChild(thumb);
+          card.appendChild(mediaWrap);
 
           const meta = document.createElement('div'); meta.className = 'momMeta';
           const owner = document.createElement('div'); owner.innerText = m.ownerUsername || m.ownerEmail || 'Usuario';
           const date = document.createElement('div'); date.style.fontSize='12px'; date.style.color='#888';
-          date.innerText = m.createdAt ? (new Date(m.createdAt.seconds ? m.createdAt.toMillis() : m.createdAt).toLocaleString()) : '';
+          date.innerText = m.createdAt ? (m.createdAt.seconds ? (new Date(m.createdAt.seconds * 1000)).toLocaleString() : new Date(m.createdAt).toLocaleString()) : '';
           meta.appendChild(owner); meta.appendChild(date);
           card.appendChild(meta);
 
           const text = document.createElement('div'); text.className = 'momText';
-          // show short text + "..." and a dot button to expand
           let full = m.text || '';
           if(full.length <= 120) text.innerText = full;
-          else {
-            text.innerText = full.slice(0,120) + '...';
+          else text.innerText = full.slice(0,120) + '...';
+          card.appendChild(text);
+
+          if(full.length > 120){
             const dots = document.createElement('button'); dots.className='moreDots'; dots.innerText='⋯';
             dots.title = 'Mostrar texto completo';
             dots.onclick = ()=> {
@@ -1044,14 +1062,13 @@
             };
             card.appendChild(dots);
           }
-          card.appendChild(text);
 
           // actions: like (any user), approve/reject (admins), delete own before approval, info about status
           const actions = document.createElement('div'); actions.className='momActions';
 
-          const likeBtn = document.createElement('button'); likeBtn.className='likeBtn';
           const likedBy = Array.isArray(m.likes) ? m.likes : [];
           const userLiked = currentUser && likedBy.includes(currentUser.uid);
+          const likeBtn = document.createElement('button'); likeBtn.className='likeBtn';
           likeBtn.innerText = `❤ ${likedBy.length || 0}`;
           likeBtn.onclick = async ()=>{
             if(!currentUser) { alert('Inicia sesión para dar like'); return; }
@@ -1065,7 +1082,7 @@
           };
           actions.appendChild(likeBtn);
 
-          // if admin -> approve/reject
+          // admin status badge + approve/reject
           if(currentUserRole === 'admin'){
             const statusTag = document.createElement('div');
             statusTag.style.padding = '6px 8px'; statusTag.style.borderRadius='8px'; statusTag.style.fontSize='13px';
@@ -1085,17 +1102,14 @@
               actions.appendChild(approveBtn);
             }
 
-            // reject
             const rejectBtn = document.createElement('button'); rejectBtn.className='rejectBtn'; rejectBtn.innerText = 'Rechazar';
             rejectBtn.onclick = async ()=> {
               if(!confirm('Rechazar y eliminar publicación?')) return;
               try {
-                // delete storage object if exists
                 if(m.storagePath){
                   const refToDel = sref(storage, m.storagePath);
                   await deleteObject(refToDel).catch(e => console.warn('No se pudo borrar storage: ', e));
                 }
-                // delete doc
                 await deleteDoc(doc(db,'moments', m.id));
               } catch(err){ console.error(err); alert('Error rechazando: '+err.message); }
             };
@@ -1166,14 +1180,10 @@
       const file = momentFile.files[0];
       const text = momentText.value.trim();
       if(!file) return alert('Selecciona un archivo');
-      // size/time checks (basic)
-      const maxVideoSeconds = 60 * 5; // 5 minutes
-      if(file.type.startsWith('video')){
-        // can't reliably read duration before upload without loading, so just trust client side for now
-      }
-      // storage path
+
       const timestamp = Date.now();
-      const storagePath = `moments/${currentUser.uid}/${timestamp}_${file.name}`;
+      const cleanedName = file.name.replace(/\s+/g,'_');
+      const storagePath = `moments/${currentUser.uid}/${timestamp}_${cleanedName}`;
       const fileRef = sref(storage, storagePath);
 
       try {
@@ -1192,25 +1202,33 @@
           url,
           text: text || '',
           likes: [],
-          status: 'pending',
+          status: currentUserRole === 'admin' ? 'approved' : 'pending', // auto-approve if admin uploads
           createdAt: serverTimestamp()
         });
-        alert('Archivo subido. Queda pendiente aprobación de un admin.');
+        alert(currentUserRole === 'admin' ? 'Archivo subido y aprobado automáticamente.' : 'Archivo subido. Queda pendiente aprobación de un admin.');
         // reset form
         momentFile.value = ''; momentText.value = '';
         uploadArea.style.display = 'none';
+        // refresh moments view
+        renderMoments();
       } catch(err){
         console.error('Error subiendo archivo:', err);
         alert('Error subiendo archivo: ' + (err.message || err));
       }
     });
 
-    cancelMoment.addEventListener('click', () => {
+    cancelMoment.addEventListener('click', ()=> {
       momentFile.value = ''; momentText.value = ''; uploadArea.style.display = 'none';
     });
 
-    openAddMomentBtn.addEventListener('click', () => {
+    openAddMomentBtn.addEventListener('click', ()=> {
       uploadArea.style.display = (uploadArea.style.display === 'block' || uploadArea.style.display === 'flex') ? 'none' : 'block';
+    });
+
+    // reload button
+    reloadMomentsBtn.addEventListener('click', ()=> {
+      // force re-render and keep listener running
+      renderMoments();
     });
 
     // ========================= end Moments =========================
@@ -1227,6 +1245,7 @@
   </script>
 </body>
 </html>
+
 
 
 
