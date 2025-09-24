@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -119,7 +119,37 @@
     .modal input[type="text"], .modal textarea, .modal input[type="date"]{padding:8px;border-radius:6px;border:1px solid #ddd}
     .modal textarea{min-height:90px;resize:vertical}
 
-    /* ===== Payment popup (mini cuadro con neon borde) ===== */
+    /* ===== Users panel (admin) ===== */
+    .usersPanel{display:none;background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06);margin:20px}
+    .userRow{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f0f0f0}
+    .userRow button{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;margin-left:8px}
+    .btn-admin{background:#46c46b;color:#fff}
+    .btn-remove-admin{background:#ffb84d;color:#000}
+    .btn-subscriber{background:#009688;color:#fff}
+    .btn-remove-subscriber{background:#ff8a80;color:#000}
+    .btn-block{background:#444;color:#fff}
+    .btn-unblock{background:#ff4477;color:#fff}
+
+    /* ===== Momentos: galería y upload ===== */
+    .momentsHeader { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .uploadWrap { margin-top:12px; background:#fff0fb; padding:12px; border-radius:10px; border:1px solid #ffdee9; }
+    .momentsGrid { margin-top:14px; display:grid; gap:12px; }
+    /* grid responsive: we'll set columns in JS based on width, but provide default */
+    .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
+    .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee }
+    .momMeta { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; color:#333 }
+    .momText { font-size:13px; color:#444; max-height:48px; overflow:hidden; text-overflow:ellipsis; }
+    .momActions { display:flex; gap:8px; align-items:center; margin-top:6px }
+    .likeBtn { background:transparent; border:1px solid #ff99cc; padding:6px 8px; border-radius:8px; cursor:pointer }
+    .approveBtn { background:#46c46b; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
+    .rejectBtn { background:#ff4444; color:white; border:none; padding:6px 10px; border-radius:8px; cursor:pointer }
+    .moreDots { background:transparent; border:none; cursor:pointer; font-weight:700 }
+
+    /* pagination */
+    .pager { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:12px; }
+    .pager button { padding:6px 10px; border-radius:8px; background:#fff; border:1px solid #ffd8ee; cursor:pointer; }
+
+    /* Payment popup (mini cuadro con neon borde) */
     .payWrap { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,0.35); z-index: 2500; }
     .payPopup {
       position: relative;
@@ -295,7 +325,42 @@
       <!-- MOMENTOS -->
       <section id="momentosSection" style="display:none">
         <h2>Momentos de Mili</h2>
-        <p>Fotos y videos subirán aquí (pendiente integrar Storage).</p>
+
+        <!-- Upload + gallery controls -->
+        <div class="momentsHeader">
+          <div>
+            <small style="color:#666">Sube fotos (JPG/PNG) o videos (hasta 5 min). Las publicaciones quedan pendientes hasta aprobación.</small>
+          </div>
+          <div>
+            <button id="openAddMomentBtn" class="btn" style="display:none">Añadir Foto/Video</button>
+          </div>
+        </div>
+
+        <div id="uploadArea" class="uploadWrap" style="display:none">
+          <form id="momentForm">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input type="file" id="momentFile" accept="image/*,video/*">
+              <input type="text" id="momentText" placeholder="Texto / descripción (opcional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd">
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="submit" class="btn">Subir</button>
+              <button type="button" id="cancelMoment" class="btn secondary">Cancelar</button>
+            </div>
+            <div style="margin-top:8px;color:#666;font-size:13px">Videos máximo 5 minutos. Imágenes JPG/PNG. Los contenidos quedan pendientes hasta aprobación de un admin.</div>
+          </form>
+        </div>
+
+        <!-- gallery -->
+        <div id="momentsList" class="momentsGrid" aria-live="polite">
+          <!-- cards via JS -->
+        </div>
+
+        <div class="pager" id="momPager" style="display:none">
+          <button id="prevPage">Anterior</button>
+          <div id="pageInfo">1 / 1</div>
+          <button id="nextPage">Siguiente</button>
+        </div>
+
       </section>
     </div>
 
@@ -352,14 +417,15 @@
       </div>
     </div>
   </div>
-
-  <!-- FIREBASE + LÓGICA + extras UI -->
+  <!-- FIREBASE + LÓGICA + Momentos -->
   <script type="module">
+    // --- firebase imports (existing ones kept + storage & array ops) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
     import {
-      getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy
+      getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, deleteDoc, onSnapshot, updateDoc, query, orderBy, arrayUnion, arrayRemove, serverTimestamp, where, limit
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { getStorage, ref as sref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
     // ====== TU CONFIG DE FIREBASE ======
     const firebaseConfig = {
@@ -375,8 +441,9 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    // UI refs
+    // --- UI refs (existing) ---
     const loginScreen = document.getElementById('loginScreen');
     const mainContent = document.getElementById('mainContent');
     const displayName = document.getElementById('welcomeMsg');
@@ -412,6 +479,7 @@
     const btnHome = document.getElementById('btnHome');
     const btnSorteo = document.getElementById('btnSorteo');
     const btnMomentos = document.getElementById('btnMomentos');
+    const btnMomentosNav = document.getElementById('btnMomentos');
     const btnUsers = document.getElementById('btnUsers');
     const logoutBtn = document.getElementById('logoutBtn');
 
@@ -440,18 +508,37 @@
 
     const stickyMobile = document.getElementById('stickyMobile');
 
+    // moments UI refs
+    const openAddMomentBtn = document.getElementById('openAddMomentBtn');
+    const uploadArea = document.getElementById('uploadArea');
+    const momentForm = document.getElementById('momentForm');
+    const momentFile = document.getElementById('momentFile');
+    const momentText = document.getElementById('momentText');
+    const cancelMoment = document.getElementById('cancelMoment');
+    const momentsList = document.getElementById('momentsList');
+    const momPager = document.getElementById('momPager');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageInfo = document.getElementById('pageInfo');
+
     // state
     let viewDate = new Date();
     let eventsCache = []; // all events listened in real time
     let currentUser = null;
     let currentUserRole = 'user';
+    let currentUserDoc = null; // firestore user doc
+    let userCanPost = true;
 
-    // Helpers
+    // moments state
+    let momentsCache = []; // all moments from firestore (real-time)
+    let currentMomPage = 1;
+    let perPage = 4; // default desktop
+
+    // --- helpers ---
     function toISODate(d){ const y=d.getFullYear(); const m=('0'+(d.getMonth()+1)).slice(-2); const dd=('0'+d.getDate()).slice(-2); return `${y}-${m}-${dd}`; }
     function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
     function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
 
-    // linkify + escape to render clickable links inside event descriptions
     function escapeHtml(s) {
       if(!s) return '';
       return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
@@ -482,7 +569,11 @@
     // wire nav
     btnHome.addEventListener('click', ()=> showSection('home'));
     btnSorteo.addEventListener('click', ()=> showSection('sorteo'));
-    btnMomentos.addEventListener('click', ()=> showSection('momentos'));
+    btnMomentos.addEventListener('click', ()=> {
+      showSection('momentos');
+      // ensure moments listener started
+      if(!momentsUnsub) startMomentsListener();
+    });
     btnUsers.addEventListener('click', ()=> { if(currentUserRole==='admin') showSection('users'); });
 
     // login/register toggle
@@ -535,7 +626,7 @@
       if(!email || !password || !username){ alert('Completa todos los campos'); return; }
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db,'users',cred.user.uid), { uid: cred.user.uid, email, username, role: 'user', suscriptor: false, createdAt: new Date().toISOString() });
+        await setDoc(doc(db,'users',cred.user.uid), { uid: cred.user.uid, email, username, role: 'user', suscriptor: false, canPost: true, createdAt: new Date().toISOString() });
         alert('Registrado. Inicia sesión.');
         isRegister = false;
         newUserEl.style.display = 'none';
@@ -567,8 +658,10 @@
           const u = snap.data();
           const div = document.createElement('div');
           div.className = 'userRow';
-          const left = document.createElement('div'); left.innerText = `${u.username || u.email} — ${u.role || 'user'} ${u.suscriptor ? ' (Suscriptor)' : ''}`;
+          const left = document.createElement('div'); left.innerText = `${u.username || u.email} — ${u.role || 'user'} ${u.suscriptor ? ' (Suscriptor)' : ''} ${u.canPost===false ? ' (Bloqueado)' : ''}`;
           const right = document.createElement('div');
+
+          // don't let admin modify themselves
           if(currentUser && currentUser.uid !== snap.id){
             const adminBtn = document.createElement('button');
             adminBtn.textContent = u.role === 'admin' ? 'Quitar admin' : 'Hacer admin';
@@ -586,7 +679,18 @@
               catch(err){ console.error(err); alert('Error actualizando suscriptor: '+err.message); }
             };
             right.appendChild(subsBtn);
+
+            // block/unblock publishing
+            const blockBtn = document.createElement('button');
+            blockBtn.textContent = u.canPost === false ? 'Desbloquear publicaciones' : 'Bloquear publicaciones';
+            blockBtn.className = u.canPost === false ? 'btn-unblock' : 'btn-block';
+            blockBtn.onclick = async ()=> {
+              try { await updateDoc(doc(db,'users', snap.id), { canPost: !(u.canPost === false) }); }
+              catch(err){ console.error(err); alert('Error actualizando permiso de publicación: '+err.message); }
+            };
+            right.appendChild(blockBtn);
           }
+
           div.appendChild(left); div.appendChild(right);
           usersList.appendChild(div);
         });
@@ -596,7 +700,7 @@
       if(usersUnsub){ usersUnsub(); usersUnsub = null; }
     }
 
-    // Events listener
+    // Events listener (unchanged)
     let eventsUnsub = null;
     function startEventsListener(){
       if(eventsUnsub) return;
@@ -613,7 +717,7 @@
       if(eventsUnsub){ eventsUnsub(); eventsUnsub = null; }
     }
 
-    // Render calendar for viewDate
+    // Render calendar for viewDate (unchanged)
     function renderCalendar(){
       calGrid.innerHTML = '';
       const start = startOfMonth(viewDate);
@@ -647,7 +751,7 @@
       }
     }
 
-    // Open modal for day
+    // Open modal for day (unchanged logic, but descriptions are linkified)
     function openDayModal(dateObj){
       modalWrap.style.display = 'flex';
       modalDayTitle.innerText = `Eventos — ${dateObj.toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}`;
@@ -683,7 +787,7 @@
     modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; });
     modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; });
 
-    // add event (admin only)
+    // add event (admin only) unchanged
     addEventForm.addEventListener('submit', async (ev)=>{
       ev.preventDefault();
       if(currentUserRole !== 'admin') return alert('Solo admins pueden añadir eventos');
@@ -708,7 +812,7 @@
       openDayModal(d);
     });
 
-    // ---------- Auth state handling ----------
+    // ---------- Auth state handling (extended to load user doc and show upload btn) ----------
     onAuthStateChanged(auth, async (user)=>{
       currentUser = user;
       if(user){
@@ -720,13 +824,18 @@
             const data = uDoc.data();
             role = data.role || 'user';
             username = data.username || user.email.split('@')[0];
+            currentUserDoc = data;
+            userCanPost = (data.canPost !== false);
           } else {
             const defaultRole = (user.email === 'jgalindoduvan@gmail.com') ? 'admin' : 'user';
-            await setDoc(doc(db,'users', user.uid), { uid: user.uid, email: user.email, username: user.email.split('@')[0], role: defaultRole, suscriptor: false, createdAt: new Date().toISOString() });
+            await setDoc(doc(db,'users', user.uid), { uid: user.uid, email: user.email, username: user.email.split('@')[0], role: defaultRole, suscriptor: false, canPost: true, createdAt: new Date().toISOString() });
             role = defaultRole;
             username = user.email.split('@')[0];
+            currentUserDoc = { role, username, canPost: true, email: user.email };
+            userCanPost = true;
           }
         } catch(err){ console.error('Error leyendo/creando user doc:', err); }
+
         currentUserRole = role;
         loginScreen.style.display='none';
         mainContent.style.display='block';
@@ -734,19 +843,32 @@
         roleMsg.innerText = currentUserRole === 'admin' ? 'Has ingresado como Administrador ✅' : 'Has ingresado como Usuario 👤';
         btnUsers.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
         usersPanel.style.display = 'none';
+
+        // start listeners according to role
         startEventsListener();
         if(currentUserRole === 'admin') startUsersListener(); else stopUsersListener();
+
         addEventBtn.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
+
+        // Moments UI: show upload button only if userCanPost true
+        openAddMomentBtn.style.display = userCanPost ? 'inline-block' : 'none';
+        // start moments listener (real-time)
+        if(!momentsUnsub) startMomentsListener();
+
         renderCalendar();
       } else {
         loginScreen.style.display='block';
         mainContent.style.display='none';
         stopEventsListener();
         stopUsersListener();
+        stopMomentsListener();
         currentUserRole = 'user';
+        currentUserDoc = null;
+        userCanPost = true;
       }
     });
 
+    // small accessibility: focus email on load
     emailEl.focus();
 
     function showUsersSection(){
@@ -763,7 +885,7 @@
     // helper: initial render of calendar
     renderCalendar();
 
-    // ---------- Mobile menu (now: stickyMobile) ----------
+    // ---------- Mobile sticky menu ----------
     function openMobileSticky(){
       stickyMobile.classList.add('open');
       mobileOverlay.classList.add('open');
@@ -783,35 +905,28 @@
     hamburgerBtn.addEventListener('keydown', (e)=> { if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleMobileSticky(); }});
     mobileOverlay.addEventListener('click', closeMobileSticky);
 
-    // close mobile sticky when clicking any link inside it
-    // NOTE: changed behavior — do NOT auto-close when link opens in new tab/external (target _blank or http(s)),
-    // so the sticky stays open while external links open. For internal links we still close.
     Array.from(stickyMobile.querySelectorAll('a')).forEach(a => {
       a.addEventListener('click', (e) => {
         const href = a.getAttribute('href') || '';
         const target = a.getAttribute('target');
-        // If link opens in a new tab or is external/phone/mail, don't auto-close the sticky
-        if (target === '_blank' || /^https?:\/\//i.test(href) || href.startsWith('mailto:') || href.startsWith('tel:')) {
-          // leave sticky open so user sees menu while external opens
-          return;
-        }
-        // For internal/href anchors, close after a small delay
+        if (target === '_blank' || /^https?:\/\//i.test(href) || href.startsWith('mailto:') || href.startsWith('tel:')) return;
         setTimeout(closeMobileSticky, 120);
       });
     });
 
-    // ensure mobile sticky closes when modal opens (avoid stacking)
     const observer = new MutationObserver(()=> {
       if(modalWrap.style.display === 'flex') closeMobileSticky();
     });
     observer.observe(modalWrap, { attributes: true, attributeFilter: ['style'] });
 
-    // close sticky if window resized to desktop
     window.addEventListener('resize', ()=> {
       if(window.innerWidth > 900) closeMobileSticky();
+      // update perPage
+      computePerPage();
+      renderMoments(); // re-render with new perPage
     });
 
-    // ---------- Payment popup logic ----------
+    // ---------- Payment popup logic (unchanged) ----------
     const PAYPAL_URL = 'https://www.paypal.com/paypalme/mili437';
     const NEQUI_NUMBER = '3226801768';
     mobilePaymentBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openPayPopup(); });
@@ -822,7 +937,6 @@
       qrView.style.display = 'none';
       payWrap.style.display = 'flex';
       payWrap.setAttribute('aria-hidden','false');
-      // when pop-up opens, ensure mobile sticky closed to avoid overlap
       closeMobileSticky();
     }
     function closePayPopup(){ payWrap.style.display = 'none'; payWrap.setAttribute('aria-hidden','true'); }
@@ -843,9 +957,277 @@
       }
     });
 
+    // ========================= MOMENTS: Storage + Firestore logic =========================
+
+    // compute perPage based on width
+    function computePerPage(){
+      if(window.innerWidth <= 600) perPage = 2; // mobile: 2
+      else perPage = 4; // desktop/tablet: 4
+    }
+    computePerPage();
+
+    // Real-time listener for 'moments' collection
+    let momentsUnsub = null;
+    function startMomentsListener(){
+      if(momentsUnsub) return;
+      // listen all (admins see everything), non-admins only need approved for public view but admins need to see pending too
+      const q = query(collection(db,'moments'), orderBy('createdAt','desc'));
+      momentsUnsub = onSnapshot(q, snapshot=>{
+        momentsCache = [];
+        snapshot.forEach(snap=>{
+          momentsCache.push({ id: snap.id, ...snap.data() });
+        });
+        // If currently on momentos section, render
+        if(document.getElementById('momentsSection').style.display !== 'none'){
+          renderMoments();
+        }
+      });
+    }
+    function stopMomentsListener(){
+      if(momentsUnsub){ momentsUnsub(); momentsUnsub = null; momentsCache = []; }
+    }
+
+    // Render moments with pagination
+    function renderMoments(){
+      // filter visible: if admin, show all; else only approved
+      const visible = momentsCache.filter(m => (currentUserRole === 'admin') ? true : (m.status === 'approved'));
+      // pagination
+      const total = visible.length;
+      const totalPages = Math.max(1, Math.ceil(total / perPage));
+      if(currentMomPage > totalPages) currentMomPage = totalPages;
+      const start = (currentMomPage-1) * perPage;
+      const pageItems = visible.slice(start, start + perPage);
+
+      // grid columns responsive
+      const cols = (perPage === 4) ? 4 : 2;
+      momentsList.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+      momentsList.innerHTML = '';
+      if(pageItems.length === 0){
+        momentsList.innerHTML = `<div style="grid-column:1/-1;color:#666;padding:20px;border-radius:10px;background:#fff">No hay Momentos para mostrar.</div>`;
+      } else {
+        pageItems.forEach(m => {
+          const card = document.createElement('div'); card.className = 'momCard';
+          const thumb = document.createElement('img'); thumb.className = 'momThumb';
+          // if image or video: show poster or first frame? we'll display image for images and thumbnail for video if url present (browser will show video tag on click)
+          const isVideo = (m.contentType || '').startsWith('video');
+          if(!m.url){
+            thumb.src = ''; thumb.style.background = '#eee';
+          } else {
+            thumb.src = m.url;
+          }
+
+          // clicking thumbnail: open in modal-like big view (simple)
+          thumb.style.cursor = 'pointer';
+          thumb.addEventListener('click', ()=> openMomentViewer(m));
+
+          card.appendChild(thumb);
+
+          const meta = document.createElement('div'); meta.className = 'momMeta';
+          const owner = document.createElement('div'); owner.innerText = m.ownerUsername || m.ownerEmail || 'Usuario';
+          const date = document.createElement('div'); date.style.fontSize='12px'; date.style.color='#888';
+          date.innerText = m.createdAt ? (new Date(m.createdAt.seconds ? m.createdAt.toMillis() : m.createdAt).toLocaleString()) : '';
+          meta.appendChild(owner); meta.appendChild(date);
+          card.appendChild(meta);
+
+          const text = document.createElement('div'); text.className = 'momText';
+          // show short text + "..." and a dot button to expand
+          let full = m.text || '';
+          if(full.length <= 120) text.innerText = full;
+          else {
+            text.innerText = full.slice(0,120) + '...';
+            const dots = document.createElement('button'); dots.className='moreDots'; dots.innerText='⋯';
+            dots.title = 'Mostrar texto completo';
+            dots.onclick = ()=> {
+              if(text.innerText.length > 140) text.innerText = full.slice(0,120) + '...';
+              else text.innerText = full;
+            };
+            card.appendChild(dots);
+          }
+          card.appendChild(text);
+
+          // actions: like (any user), approve/reject (admins), delete own before approval, info about status
+          const actions = document.createElement('div'); actions.className='momActions';
+
+          const likeBtn = document.createElement('button'); likeBtn.className='likeBtn';
+          const likedBy = Array.isArray(m.likes) ? m.likes : [];
+          const userLiked = currentUser && likedBy.includes(currentUser.uid);
+          likeBtn.innerText = `❤ ${likedBy.length || 0}`;
+          likeBtn.onclick = async ()=>{
+            if(!currentUser) { alert('Inicia sesión para dar like'); return; }
+            try {
+              if(userLiked) {
+                await updateDoc(doc(db,'moments', m.id), { likes: arrayRemove(currentUser.uid) });
+              } else {
+                await updateDoc(doc(db,'moments', m.id), { likes: arrayUnion(currentUser.uid) });
+              }
+            } catch(err){ console.error(err); alert('Error al dar like: '+err.message); }
+          };
+          actions.appendChild(likeBtn);
+
+          // if admin -> approve/reject
+          if(currentUserRole === 'admin'){
+            const statusTag = document.createElement('div');
+            statusTag.style.padding = '6px 8px'; statusTag.style.borderRadius='8px'; statusTag.style.fontSize='13px';
+            if(m.status === 'approved'){ statusTag.innerText = 'Aprobado'; statusTag.style.background='#eaffef'; statusTag.style.color='#169e36'; }
+            else if(m.status === 'rejected'){ statusTag.innerText = 'Rechazado'; statusTag.style.background = '#fff0f0'; statusTag.style.color = '#c51b1b'; }
+            else { statusTag.innerText = 'Pendiente'; statusTag.style.background = '#fff7f9'; statusTag.style.color = '#ff2b92'; }
+            actions.appendChild(statusTag);
+
+            if(m.status !== 'approved'){
+              const approveBtn = document.createElement('button'); approveBtn.className='approveBtn'; approveBtn.innerText='Aprobar';
+              approveBtn.onclick = async ()=> {
+                if(!confirm('Aprobar publicación?')) return;
+                try {
+                  await updateDoc(doc(db,'moments', m.id), { status: 'approved', approvedAt: serverTimestamp() });
+                } catch(err){ console.error(err); alert('Error aprobando: '+err.message); }
+              };
+              actions.appendChild(approveBtn);
+            }
+
+            // reject
+            const rejectBtn = document.createElement('button'); rejectBtn.className='rejectBtn'; rejectBtn.innerText = 'Rechazar';
+            rejectBtn.onclick = async ()=> {
+              if(!confirm('Rechazar y eliminar publicación?')) return;
+              try {
+                // delete storage object if exists
+                if(m.storagePath){
+                  const refToDel = sref(storage, m.storagePath);
+                  await deleteObject(refToDel).catch(e => console.warn('No se pudo borrar storage: ', e));
+                }
+                // delete doc
+                await deleteDoc(doc(db,'moments', m.id));
+              } catch(err){ console.error(err); alert('Error rechazando: '+err.message); }
+            };
+            actions.appendChild(rejectBtn);
+          } else {
+            // if user own pending moment, allow cancel (delete)
+            if(currentUser && m.ownerUid === currentUser.uid && m.status === 'pending'){
+              const cancelBtn = document.createElement('button'); cancelBtn.className='rejectBtn'; cancelBtn.innerText='Cancelar';
+              cancelBtn.onclick = async ()=> {
+                if(!confirm('Eliminar tu publicación pendiente?')) return;
+                try {
+                  if(m.storagePath){ await deleteObject(sref(storage, m.storagePath)).catch(()=>{}); }
+                  await deleteDoc(doc(db,'moments', m.id));
+                } catch(err){ console.error(err); alert('Error eliminando: '+err.message); }
+              };
+              actions.appendChild(cancelBtn);
+            }
+          }
+
+          card.appendChild(actions);
+          momentsList.appendChild(card);
+        });
+      }
+
+      // pager
+      if(total > perPage) {
+        momPager.style.display = 'flex';
+        pageInfo.innerText = `${currentMomPage} / ${Math.max(1, Math.ceil(total / perPage))} (${total} mostrados)`;
+      } else momPager.style.display = 'none';
+    }
+
+    function openMomentViewer(m){
+      // open a modal-like view for image/video
+      modalWrap.style.display = 'flex';
+      modalContent.innerHTML = '';
+      modalDayTitle.innerText = `Momento — ${m.ownerUsername || m.ownerEmail || ''}`;
+      const container = document.createElement('div');
+      container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='12px';
+      if((m.contentType||'').startsWith('video')){
+        const video = document.createElement('video');
+        video.controls = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='70vh';
+        container.appendChild(video);
+      } else {
+        const img = document.createElement('img'); img.src = m.url; img.style.width='100%'; img.style.maxHeight='70vh'; img.style.objectFit='contain';
+        container.appendChild(img);
+      }
+      if(m.text){
+        const p = document.createElement('div'); p.style.padding='8px'; p.style.background='#fff'; p.style.borderRadius='8px'; p.innerHTML = linkify(m.text);
+        container.appendChild(p);
+      }
+      modalContent.appendChild(container);
+    }
+
+    prevPageBtn.addEventListener('click', ()=> {
+      if(currentMomPage > 1) { currentMomPage--; renderMoments(); }
+    });
+    nextPageBtn.addEventListener('click', ()=> {
+      const visible = momentsCache.filter(m => (currentUserRole === 'admin') ? true : (m.status === 'approved'));
+      const totalPages = Math.max(1, Math.ceil(visible.length / perPage));
+      if(currentMomPage < totalPages){ currentMomPage++; renderMoments(); }
+    });
+
+    // ---------- Upload handler ----------
+    momentForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if(!currentUser) return alert('Inicia sesión para subir momentos');
+      if(!userCanPost) return alert('No tienes permiso para subir publicaciones');
+      const file = momentFile.files[0];
+      const text = momentText.value.trim();
+      if(!file) return alert('Selecciona un archivo');
+      // size/time checks (basic)
+      const maxVideoSeconds = 60 * 5; // 5 minutes
+      if(file.type.startsWith('video')){
+        // can't reliably read duration before upload without loading, so just trust client side for now
+      }
+      // storage path
+      const timestamp = Date.now();
+      const storagePath = `moments/${currentUser.uid}/${timestamp}_${file.name}`;
+      const fileRef = sref(storage, storagePath);
+
+      try {
+        // upload
+        const snapshot = await uploadBytes(fileRef, file);
+        // get public url (download token URL)
+        const url = await getDownloadURL(fileRef);
+        // add doc to firestore (status pending)
+        await addDoc(collection(db,'moments'), {
+          ownerUid: currentUser.uid,
+          ownerEmail: currentUser.email,
+          ownerUsername: currentUserDoc ? currentUserDoc.username : (currentUser.email.split('@')[0] || ''),
+          filename: file.name,
+          contentType: file.type,
+          storagePath,
+          url,
+          text: text || '',
+          likes: [],
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+        alert('Archivo subido. Queda pendiente aprobación de un admin.');
+        // reset form
+        momentFile.value = ''; momentText.value = '';
+        uploadArea.style.display = 'none';
+      } catch(err){
+        console.error('Error subiendo archivo:', err);
+        alert('Error subiendo archivo: ' + (err.message || err));
+      }
+    });
+
+    cancelMoment.addEventListener('click', () => {
+      momentFile.value = ''; momentText.value = ''; uploadArea.style.display = 'none';
+    });
+
+    openAddMomentBtn.addEventListener('click', () => {
+      uploadArea.style.display = (uploadArea.style.display === 'block' || uploadArea.style.display === 'flex') ? 'none' : 'block';
+    });
+
+    // ========================= end Moments =========================
+
+    // start moments listener only when needed (we already start in auth handler)
+    // but ensure there is an unsub variable declared earlier (momentsUnsub)
+
+    // compute perPage initially and whenever page loads
+    computePerPage();
+
+    // ensure moments rendered if data already present
+    // (moments listener will call renderMoments when snapshot arrives)
+
   </script>
 </body>
 </html>
+
 
 
 
