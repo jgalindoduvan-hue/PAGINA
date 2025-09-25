@@ -216,7 +216,7 @@
     .qrNumber { font-weight:700; color:#333; margin-top:6px; font-size:15px; }
     .copyBtn { margin-top:8px; display:inline-block; background:#ff3399; color:white; padding:8px 12px; border-radius:8px; font-weight:600; cursor:pointer; border:none; }
 
-    .payPopup .hint { color:#888; margin-top:6px; font-size:13px; }
+    .payPopup .hint { color:#888; margin-top:6px; font-size:13px }
 
     /* Responsive tweaks: make calendar smaller and readable on phones */
     @media (max-width: 900px) {
@@ -279,6 +279,13 @@
 
     /* small refresh button near title */
     .refreshBtn { border:1px solid #eee; border-radius:8px; padding:6px; background:#fff; cursor:pointer; margin-right:8px; }
+
+    /* play overlay for video thumbs */
+    .playOverlay {
+      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none;
+      font-size:34px; color:rgba(255,255,255,.95); text-shadow:0 3px 10px rgba(0,0,0,.5);
+    }
+    .thumbClickable { position:relative; cursor:pointer; }
 
   </style>
 </head>
@@ -351,7 +358,6 @@
 
     <!-- Put the "mainBox" that centers content on desktop -->
     <div class="mainBox" id="mainBox">
-
       <div class="layout">
         <!-- HOME / INICIO -->
         <section id="homeSection">
@@ -858,7 +864,7 @@
     modalClose.addEventListener('click', ()=> { modalWrap.style.display='none'; modalContent.innerHTML=''; modalWrap.setAttribute('aria-hidden','true'); });
     modalWrap.addEventListener('click', (e)=> { if (e.target === modalWrap) modalWrap.style.display='none'; modalWrap.setAttribute('aria-hidden','true'); });
 
-    // add event (admin only) unchanged
+    // add event (admin only)
     addEventForm.addEventListener('submit', async (ev)=>{
       ev.preventDefault();
       if(currentUserRole !== 'admin') return alert('Solo admins pueden añadir eventos');
@@ -873,7 +879,7 @@
         modalWrap.style.display='none';
       } catch(err){ console.error(err); alert('Error guardando: '+err.message); }
     });
-    cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display='none'; modalWrap.style.display='none'; });
+    cancelAdd.addEventListener('click', ()=> { addFormWrap.style.display = 'none'; modalWrap.style.display = 'none'; });
 
     // prev/next month
     prevMonthBtn.addEventListener('click', ()=> { viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()-1, 1); renderCalendar(); });
@@ -1034,7 +1040,8 @@
 
     // compute perPage based on width
     function computePerPage(){
-      if(window.innerWidth <= 600) perPage = 2; // mobile: 2
+      if(window.innerWidth <= 420) perPage = 4; // small phones: 4 small thumbs (but displayed as 2 columns sized smaller)
+      else if(window.innerWidth <= 600) perPage = 4; // mobile: still show 4 but as smaller grid
       else perPage = 4; // desktop/tablet: 4
     }
     computePerPage();
@@ -1051,7 +1058,7 @@
           momentsCache.push({ id: snap.id, ...snap.data() });
         });
         // If currently on momentos section, render
-        if(document.getElementById('momentsSection').style.display !== 'none'){
+        if(document.getElementById('momentosSection').style.display !== 'none'){
           renderMoments();
         }
       });
@@ -1071,8 +1078,8 @@
       const start = (currentMomPage-1) * perPage;
       const pageItems = visible.slice(start, start + perPage);
 
-      // grid columns responsive
-      const cols = (perPage === 4) ? 2 : 2; // use 2 columns in layout but items sized to show 2x2 per page appearance
+      // grid columns responsive -> show 2 columns so visually 2x2 (2 columns, 2 rows per page)
+      const cols = 2;
       momentsList.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
       momentsList.innerHTML = '';
@@ -1084,15 +1091,39 @@
           // ensure card has enough left margin to avoid stickers overlay on left side
           card.style.marginLeft = '8px';
           const thumbWrap = document.createElement('div'); thumbWrap.style.position='relative'; thumbWrap.style.overflow='hidden';
+          thumbWrap.classList.add('thumbClickable');
+
           const isVideo = (m.contentType || '').startsWith('video');
           if(!m.url){
             const placeholder = document.createElement('div'); placeholder.style.height='160px'; placeholder.style.background='#eee'; placeholder.style.borderRadius='8px';
             thumbWrap.appendChild(placeholder);
           } else {
             if(isVideo){
-              const video = document.createElement('video');
-              video.controls = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='320px'; video.style.borderRadius='8px';
-              thumbWrap.appendChild(video);
+              // For videos: show a video tag without controls in card (poster if available). Add play overlay and click => open modal with controls.
+              const thumbPoster = document.createElement('div');
+              thumbPoster.style.height = '220px';
+              thumbPoster.style.background = '#000';
+              thumbPoster.style.borderRadius = '8px';
+              thumbPoster.style.display = 'flex';
+              thumbPoster.style.alignItems = 'center';
+              thumbPoster.style.justifyContent = 'center';
+              thumbPoster.style.position = 'relative';
+              // try to show the thumbnail image if provided as m.thumbnailUrl else show first frame not available -> show play icon
+              if(m.posterUrl){
+                const img = document.createElement('img'); img.src = m.posterUrl; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; img.style.borderRadius='8px';
+                thumbPoster.appendChild(img);
+              } else {
+                // fallback grey box
+                const box = document.createElement('div'); box.style.width='100%'; box.style.height='100%'; box.style.background='#333'; box.style.borderRadius='8px';
+                thumbPoster.appendChild(box);
+              }
+              // play overlay
+              const play = document.createElement('div'); play.className='playOverlay'; play.innerText='▶';
+              thumbPoster.appendChild(play);
+
+              thumbWrap.appendChild(thumbPoster);
+              // click to open modal player
+              thumbWrap.addEventListener('click', ()=> openMomentViewer(m));
             } else {
               const img = document.createElement('img'); img.className='momThumb'; img.src = m.url;
               img.style.borderRadius = '8px';
@@ -1129,18 +1160,28 @@
           // actions
           const actions = document.createElement('div'); actions.className='momActions';
 
-          // like button - local toggling + firestore update
+          // like button - optimistic update + Firestore
           const likeBtn = document.createElement('button'); likeBtn.className='like-button';
-          likeBtn.innerHTML = `<i>❤</i> <span>${(m.likes && m.likes.length) || 0}</span>`;
-          // set liked class if current user liked
+          const likesCount = Array.isArray(m.likes) ? m.likes.length : 0;
+          likeBtn.innerHTML = `<i>❤</i> <span>${likesCount}</span>`;
           if(currentUser && Array.isArray(m.likes) && m.likes.includes(currentUser.uid)) likeBtn.classList.add('liked');
-          likeBtn.addEventListener('click', async (ev)=> {
+
+          likeBtn.addEventListener('click', async (ev) => {
             ev.preventDefault();
             if(!currentUser) { alert('Inicia sesión para dar like'); return; }
             try {
               const docRef = doc(db,'moments', m.id);
               const likedBy = Array.isArray(m.likes) ? m.likes.slice() : [];
               const hasLiked = likedBy.includes(currentUser.uid);
+              // optimistic UI: update local cache immediately
+              if(hasLiked){
+                // remove locally
+                m.likes = likedBy.filter(u => u !== currentUser.uid);
+              } else {
+                m.likes = likedBy.concat([currentUser.uid]);
+              }
+              renderMoments(); // re-render quickly so user sees change
+              // then update firestore
               if(hasLiked){
                 await updateDoc(docRef, { likes: arrayRemove(currentUser.uid) });
               } else {
@@ -1150,7 +1191,7 @@
           });
           actions.appendChild(likeBtn);
 
-          // if admin -> approve/reject
+          // admin actions: approve/reject
           if(currentUserRole === 'admin'){
             const statusTag = document.createElement('div');
             statusTag.style.padding = '6px 8px'; statusTag.style.borderRadius='8px'; statusTag.style.fontSize='13px';
@@ -1222,8 +1263,11 @@
       container.style.display='flex'; container.style.flexDirection='column'; container.style.gap='12px';
       if((m.contentType||'').startsWith('video')){
         const video = document.createElement('video');
-        video.controls = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='70vh';
+        video.controls = true; video.playsInline = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='70vh';
+        video.setAttribute('webkit-playsinline','');
         container.appendChild(video);
+        // autoplay only on user interaction (we opened modal by click), start playback
+        try { video.play().catch(()=>{}); } catch(e){}
       } else {
         const img = document.createElement('img'); img.src = m.url; img.style.width='100%'; img.style.maxHeight='70vh'; img.style.objectFit='contain';
         container.appendChild(img);
@@ -1321,6 +1365,7 @@
     });
 
     openAddMomentBtn.addEventListener('click', ()=> {
+      // open to the right visually: we keep same DOM but in desktop mainBox is centered.
       uploadArea.style.display = (uploadArea.style.display === 'block' || uploadArea.style.display === 'flex') ? 'none' : 'block';
       // ensure focus on file input when opened
       if(uploadArea.style.display !== 'none') setTimeout(()=> momentFile.focus(), 120);
@@ -1356,4 +1401,5 @@
   </script>
 </body>
 </html>
+
 
