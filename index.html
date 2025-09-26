@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -71,8 +71,17 @@
     }
     .stickyMobile.open { display:flex; }
     .stickyMobile a { display:block; }
-    .stickyMobile img { width:58px; height:auto; display:block; border-radius:10px; filter: drop-shadow(0 0 6px #ff33cc) drop-shadow(0 0 12px #ff33cc); transition:transform .18s,filter .18s; }
-    .stickyMobile img:hover { transform:scale(1.12) rotate(-2deg); filter: drop-shadow(0 0 10px #ff33cc) drop-shadow(0 0 20px #ff66ff); }
+
+    /* make stickers responsive and uniform size across devices */
+    .sidebar img, .stickyMobile img, .mobileMenu img, nav img {
+      width: 58px;
+      height: auto;
+      display:block;
+      border-radius:8px;
+      filter: drop-shadow(0 0 6px #ff66cc);
+      transition: transform .12s, filter .12s;
+    }
+    .sidebar img:hover, .stickyMobile img:hover, .mobileMenu img:hover, nav img:hover { transform: scale(1.08); }
 
     /* ===== Layout principal ===== */
     #mainContent{display:none;min-height:100vh}
@@ -102,7 +111,7 @@
       }
 
       /* cambio: aplicar padding-left para stickers solo en desktop */
-      .mainBox { padding-left: 46px; } /* deja room para sticker column en desktop */
+      .mainBox { padding-left: 72px; } /* deja room para sticker column en desktop — ampliado para margen cómodo */
     }
 
     /* ===== Sidebar redes (desktop) ===== */
@@ -115,18 +124,8 @@
       gap:12px;
       z-index:30;
     }
-    .sidebar img{width:50px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
+    .sidebar img{width:58px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
     .sidebar img:hover{transform:scale(1.12) rotate(-2deg);filter:drop-shadow(0 0 10px #ff66cc)}
-
-    /* Make YouTube sticker slightly larger to match others (targets by alt to avoid touching other imgs) */
-    /* cambio: sticker YouTube tamaño */
-    .sidebar a img[alt="YouTube"], .stickyMobile a img[alt="YouTube"], .mobileMenu a img[alt="YouTube"], nav img[alt="YouTube"] {
-      width: 58px;
-      height: auto;
-      border-radius:8px;
-      /* ensure it gets the same visual weight */
-      filter: drop-shadow(0 0 6px #ff66cc);
-    }
 
     /* ===== Calendario ===== */
     .calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -174,17 +173,14 @@
     .momentsGrid { margin-top:14px; display:grid; gap:12px; }
     /* grid responsive: we'll set columns in JS based on width, but provide default */
     .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
-    .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee }
-
-    /* cambio: fijar altura de thumbs (imagen y video) para que sean iguales */
-    .momCard img.momThumb,
-    .momCard .thumbPoster img,
-    .momCard video {
-      width: 100%;
-      height: 220px; /* cambio: misma altura para imagenes y videos en grid */
-      object-fit: cover;
-      border-radius: 8px;
-      display: block;
+    /* make media square (1:1) and responsive */
+    .momCard .media {
+      width:100%;
+      aspect-ratio:1/1;
+      object-fit:cover;
+      border-radius:8px;
+      display:block;
+      background:#eee;
     }
 
     .momMeta { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; color:#333 }
@@ -259,6 +255,8 @@
 
       /* MOBILE: center feed content to avoid right-shift issue (added per request) */
       .mainBox { margin-left: auto; margin-right: auto; padding-left: 12px; padding-right: 12px; }
+      /* make stickers slightly smaller on mobile */
+      .sidebar img, .stickyMobile img, .mobileMenu img, nav img { width: 46px; }
     }
 
     @media (max-width: 600px) {
@@ -297,9 +295,6 @@
     .like-button { border-radius:8px; padding:6px 8px; border:1px solid #ffd8ee; background:#fff; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
     .like-button i { transition: all 0.25s ease; color: #ff66cc; }
     .like-button.liked i { color: #ff0000; transform: scale(1.25); }
-
-    /* Prevent stickers overlapping grid: leave room for sticker column on desktop only (moved into media min-width:900px above) */
-    /* .mainBox { padding-left: 46px; }  <-- moved to desktop-only rule */ 
 
     /* upload progress bar */
     .uploadProgressWrap { width:100%; margin-top:8px; background:#ffeef8; border-radius:8px; overflow:hidden; border:1px solid #ffd8ee; display:none; }
@@ -352,7 +347,7 @@
         <img id="btnMomentos" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/MOMENTOS-removebg-preview%20(1).png" alt="Momentos" title="Momentos">
         <img id="btnUsers" src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/admin-removebg-preview.png" alt="Usuarios" title="Usuarios" style="display:none;opacity:.95;height:66px;cursor:pointer">
         <!-- logout sticker (fijo) -->
-        <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer;height:72px;margin-left:12px">
+        <img id="logoutBtn" src="https://github.com/jgalindoduvan-hue/MILY/blob/main/d9402261-8b2f-43d0-81ae-123d79e50f66-removebg-preview.png?raw=true" alt="Cerrar Sesión" title="Cerrar Sesión" style="cursor:pointer;height:95px;margin-left:66px">
       </nav>
     </header>
 
@@ -418,7 +413,6 @@
         <small style="display:block;margin-top:10px;color:#666">Haz clic en un día para ver sus eventos.</small>
       </aside>
     </div>
-
     <!-- SORTEO -->
     <section id="sorteoSection" style="display:none;margin-top:18px">
       <h2>Sorteos</h2>
@@ -711,13 +705,13 @@
   });
 
   // ENTER key triggers current action (login or register)
-document.addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){
-    if(modalWrap.style.display === 'flex') return;
-    if(isRegister) doRegister();
-    else doLogin();
-  }
-});
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      if(modalWrap.style.display === 'flex') return;
+      if(isRegister) doRegister();
+      else doLogin();
+    }
+  });
 
   // LOGIN
   async function doLogin(){
@@ -1130,40 +1124,32 @@ document.addEventListener('keydown', (e) => {
 
         const isVideo = (m.contentType || '').startsWith('video');
         if(!m.url){
-          const placeholder = document.createElement('div'); placeholder.style.height='160px'; placeholder.style.background='#eee'; placeholder.style.borderRadius='8px';
+          const placeholder = document.createElement('div'); placeholder.style.height='0'; placeholder.style.paddingTop='100%'; placeholder.style.background='#eee'; placeholder.style.borderRadius='8px';
+          placeholder.className = 'media';
           thumbWrap.appendChild(placeholder);
         } else {
           if(isVideo){
-            // For videos: show a video tag without controls in card (poster if available). Add play overlay and click => open modal with controls.
-            const thumbPoster = document.createElement('div');
-            thumbPoster.style.height = '220px'; /* cambio: igual altura que .momCard img.momThumb (220px) */
-            thumbPoster.style.background = '#000';
-            thumbPoster.style.borderRadius = '8px';
-            thumbPoster.style.display = 'flex';
-            thumbPoster.style.alignItems = 'center';
-            thumbPoster.style.justifyContent = 'center';
-            thumbPoster.style.position = 'relative';
-            // try to show the thumbnail image if provided as m.thumbnailUrl else show first frame not available -> show play icon
-            if(m.posterUrl){
-              const img = document.createElement('img'); img.src = m.posterUrl; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; img.style.borderRadius='8px';
-              // mark this sub-element so CSS targets consistently
-              img.className = 'thumbPosterImg';
-              thumbPoster.appendChild(img);
+            // For videos: show the poster (thumbnail) image if present; otherwise try using a generic placeholder
+            const posterUrl = m.posterUrl || '';
+            const img = document.createElement('img');
+            img.className = 'media';
+            img.alt = m.filename || 'Video';
+            if(posterUrl) {
+              img.src = posterUrl;
             } else {
-              // fallback grey box
-              const box = document.createElement('div'); box.style.width='100%'; box.style.height='100%'; box.style.background='#333'; box.style.borderRadius='8px';
-              thumbPoster.appendChild(box);
+              // fall back to a neutral thumbnail (could be a site asset) — keep dark grey if none
+              img.src = m.url + '#t=1'; // sometimes instructive; if not works, browser will ignore the fragment
             }
+            thumbWrap.appendChild(img);
+
             // play overlay
             const play = document.createElement('div'); play.className='playOverlay'; play.innerText='▶';
-            thumbPoster.appendChild(play);
+            thumbWrap.appendChild(play);
 
-            thumbWrap.appendChild(thumbPoster);
             // click to open modal player
             thumbWrap.addEventListener('click', ()=> openMomentViewer(m));
           } else {
-            const img = document.createElement('img'); img.className='momThumb'; img.src = m.url;
-            img.style.borderRadius = '8px';
+            const img = document.createElement('img'); img.className='media'; img.src = m.url; img.alt = m.filename || 'Imagen';
             thumbWrap.appendChild(img);
             // click to open modal viewer
             img.style.cursor = 'pointer';
@@ -1258,6 +1244,10 @@ document.addEventListener('keydown', (e) => {
                 const refToDel = sref(storage, m.storagePath);
                 await deleteObject(refToDel).catch(e => console.warn('No se pudo borrar storage: ', e));
               }
+              if(m.posterStoragePath){
+                const refThumb = sref(storage, m.posterStoragePath);
+                await deleteObject(refThumb).catch(e => console.warn('No se pudo borrar thumbnail: ', e));
+              }
               // delete doc
               await deleteDoc(doc(db,'moments', m.id));
             } catch(err){ console.error(err); alert('Error rechazando: '+err.message); }
@@ -1271,6 +1261,7 @@ document.addEventListener('keydown', (e) => {
               if(!confirm('Eliminar tu publicación pendiente?')) return;
               try {
                 if(m.storagePath){ await deleteObject(sref(storage, m.storagePath)).catch(()=>{}); }
+                if(m.posterStoragePath){ await deleteObject(sref(storage, m.posterStoragePath)).catch(()=>{}); }
                 await deleteDoc(doc(db,'moments', m.id));
               } catch(err){ console.error(err); alert('Error eliminando: '+err.message); }
             };
@@ -1327,7 +1318,68 @@ document.addEventListener('keydown', (e) => {
     if(currentMomPage < totalPages){ currentMomPage++; renderMoments(); }
   });
 
-  // ---------- Upload handler with progress ----------
+  // ---------- Helper: capture first frame from video file (returns Blob) ----------
+  async function captureFirstFrame(file, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = URL.createObjectURL(file);
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.src = url;
+        video.playsInline = true;
+        // loadmetadata to know duration & dimensions
+        video.addEventListener('loadedmetadata', () => {
+          // limit maximum duration check (optional)
+          const maxVideoSeconds = 60 * 5;
+          if (video.duration && video.duration > maxVideoSeconds) {
+            // keep going — we won't reject here because server also should enforce, but you could alert
+          }
+          // seek slightly into the video to avoid black first frames
+          const seekTo = Math.min(0.5, Math.max(0.05, video.duration * 0.01 || 0.05));
+          let handled = false;
+          const doSeek = () => {
+            video.currentTime = seekTo;
+          };
+          video.addEventListener('seeked', () => {
+            if (handled) return;
+            handled = true;
+            try {
+              const canvas = document.createElement('canvas');
+              const vw = video.videoWidth;
+              const vh = video.videoHeight;
+              // crop to square centered
+              const size = Math.min(vw, vh);
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+              const sx = Math.floor((vw - size) / 2);
+              const sy = Math.floor((vh - size) / 2);
+              ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
+              canvas.toBlob((blob) => {
+                URL.revokeObjectURL(url);
+                if (blob) resolve(blob);
+                else reject(new Error('No se pudo generar miniatura'));
+              }, 'image/jpeg', quality);
+            } catch (err) {
+              URL.revokeObjectURL(url);
+              reject(err);
+            }
+          }, { once: true });
+          // trigger seek
+          doSeek();
+        }, { once: true });
+        video.addEventListener('error', (e) => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Error cargando video para crear miniatura'));
+        }, { once: true });
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  // ---------- Upload handler with progress (improved to generate & upload thumbnails for videos) ----------
   momentForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if(!currentUser) return alert('Inicia sesión para subir momentos');
@@ -1336,22 +1388,49 @@ document.addEventListener('keydown', (e) => {
     const text = momentText.value.trim();
     if(!file) return alert('Selecciona un archivo');
 
-    // size/time checks (basic)
-    const maxVideoSeconds = 60 * 5; // 5 minutes - best-effort client-side
+    // basic client-side validations
+    const isVideo = file.type.startsWith('video');
+    const maxVideoSeconds = 60 * 5; // 5 minutes best effort
+    const maxFileMB = 500; // arbitrary large limit; server should validate too
+    if(file.size > maxFileMB * 1024 * 1024) return alert('Archivo demasiado grande.');
+
     // storage path
     const timestamp = Date.now();
-    const storagePath = `moments/${currentUser.uid}/${timestamp}_${file.name}`;
+    const ext = file.name.split('.').pop();
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+    const storagePath = `moments/${currentUser.uid}/${timestamp}_${safeName}`;
     const fileRef = sref(storage, storagePath);
 
+    // thumbnail variables (for videos)
+    let posterBlob = null;
+    let posterUrl = '';
+    let posterStoragePath = '';
+
     try {
+      // If video: create thumbnail first (so we can upload both)
+      if(isVideo){
+        // generate thumbnail (blob) using canvas
+        try {
+          posterBlob = await captureFirstFrame(file, 0.85);
+        } catch(thErr){
+          console.warn('No se pudo generar thumbnail del video:', thErr);
+          posterBlob = null;
+        }
+      } else {
+        // for images we can create a square cropped thumbnail to keep consistent look (optional)
+        // we'll reuse the image file as poster if desired — but to ensure square crop, we could generate; to keep it simple: use original file as poster.
+        posterBlob = null;
+      }
+
       // show progress UI
       uploadProgressWrap.style.display = 'block';
       uploadProgressBar.style.width = '0%';
       submitUpload.disabled = true;
 
-      // Use resumable upload to get progress
+      // Upload main file via resumable upload (to show progress)
       const uploadTask = uploadBytesResumable(fileRef, file);
 
+      // track progress for main file and later for thumbnail
       uploadTask.on('state_changed',
         (snapshot) => {
           const percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
@@ -1364,11 +1443,28 @@ document.addEventListener('keydown', (e) => {
           submitUpload.disabled = false;
         },
         async () => {
-          // upload finished
+          // main file uploaded, get url
           const url = await getDownloadURL(fileRef);
+
+          // if we have a poster blob (video), upload it too
+          if(posterBlob){
+            posterStoragePath = `${storagePath}_thumb.jpg`;
+            const posterRef = sref(storage, posterStoragePath);
+            try {
+              // upload thumbnail (not resumable necessary)
+              await uploadBytes(posterRef, posterBlob, { contentType: 'image/jpeg' });
+              posterUrl = await getDownloadURL(posterRef);
+            } catch(pErr){
+              console.warn('Error subiendo miniatura:', pErr);
+              posterUrl = '';
+              posterStoragePath = '';
+            }
+          }
+
           // generate ownerUsername safely
           const ownerUsernameSafe = (currentUserDoc && currentUserDoc.username) ? currentUserDoc.username : (currentUser.displayName || currentUser.email.split('@')[0] || '');
-          // add doc to firestore (status pending)
+
+          // add doc to firestore (status pending) including poster info and storagePath for later deletion
           await addDoc(collection(db,'moments'), {
             ownerUid: currentUser.uid,
             ownerEmail: currentUser.email,
@@ -1377,11 +1473,14 @@ document.addEventListener('keydown', (e) => {
             contentType: file.type,
             storagePath,
             url,
+            posterUrl: posterUrl || '',
+            posterStoragePath: posterStoragePath || '',
             text: text || '',
             likes: [],
             status: currentUserRole === 'admin' ? 'approved' : 'pending',
             createdAt: serverTimestamp()
           });
+
           alert(currentUserRole === 'admin' ? 'Archivo subido y aprobado automáticamente.' : 'Archivo subido. Queda pendiente aprobación de un admin.');
           // reset form
           momentFile.value = ''; momentText.value = '';
@@ -1440,5 +1539,4 @@ document.addEventListener('keydown', (e) => {
 </script>
 </body>
 </html>
-
 
