@@ -6,7 +6,7 @@
   <title>MILI — Todo integrado</title>
   <style>
     /* ===== Reset + base ===== */
-    html,body{margin:0;height:100%;font-family:Arial, sans-serif;background:#fff}
+    html,body{margin:0;height:100%;font-family:Arial, sans-serif;background:#fff; overflow-x: hidden /* cambio: evitar desplazamiento horizontal */;}
     *{box-sizing:border-box}
 
     /* ===== Login screen ===== */
@@ -20,7 +20,7 @@
     #toggleForm{color:#ff99cc;cursor:pointer;text-align:center;margin-top:8px}
 
     /* ===== Header + nav ===== */
-    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30}
+    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30;margin-top:0 /* cambio: eliminar linea blanca encima */;}
     header h1{margin:0;font-weight:700}
     nav{display:flex;gap:10px;align-items:center}
     nav img{height:72px;cursor:pointer;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 3px #ff66cc);border-radius:8px}
@@ -100,6 +100,9 @@
         0% { box-shadow: 0 0 14px #ff4de1, 0 0 26px #ff4de1, 0 0 36px #d633ff; border-color: #ff4de1; }
         100% { box-shadow: 0 0 14px #d633ff, 0 0 26px #ff4de1, 0 0 36px #ff4de1; border-color: #d633ff; }
       }
+
+      /* cambio: aplicar padding-left para stickers solo en desktop */
+      .mainBox { padding-left: 46px; } /* deja room para sticker column en desktop */
     }
 
     /* ===== Sidebar redes (desktop) ===== */
@@ -114,6 +117,16 @@
     }
     .sidebar img{width:50px;border-radius:8px;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 5px #ff66cc)}
     .sidebar img:hover{transform:scale(1.12) rotate(-2deg);filter:drop-shadow(0 0 10px #ff66cc)}
+
+    /* Make YouTube sticker slightly larger to match others (targets by alt to avoid touching other imgs) */
+    /* cambio: sticker YouTube tamaño */
+    .sidebar a img[alt="YouTube"], .stickyMobile a img[alt="YouTube"], .mobileMenu a img[alt="YouTube"], nav img[alt="YouTube"] {
+      width: 58px;
+      height: auto;
+      border-radius:8px;
+      /* ensure it gets the same visual weight */
+      filter: drop-shadow(0 0 6px #ff66cc);
+    }
 
     /* ===== Calendario ===== */
     .calendarHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -148,7 +161,7 @@
     .usersPanel{display:none;background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.06);margin:20px}
     .userRow{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #f0f0f0}
     .userRow button{padding:6px 10px;border-radius:8px;border:none;cursor:pointer;margin-left:8px}
-    .btn-admin{background:#46c46b;color:#fff}
+    .btn-admin{Background:#46c46b;color:#fff}
     .btn-remove-admin{background:#ffb84d;color:#000}
     .btn-subscriber{background:#009688;color:#fff}
     .btn-remove-subscriber{background:#ff8a80;color:#000}
@@ -162,6 +175,18 @@
     /* grid responsive: we'll set columns in JS based on width, but provide default */
     .momCard { background:#fff; border-radius:10px; padding:10px; border:1px solid #f1e6f3; position:relative; overflow:hidden; display:flex; flex-direction:column; gap:8px; }
     .momThumb { width:100%; aspect-ratio: 16/12; object-fit:cover; border-radius:8px; background:#eee }
+
+    /* cambio: fijar altura de thumbs (imagen y video) para que sean iguales */
+    .momCard img.momThumb,
+    .momCard .thumbPoster img,
+    .momCard video {
+      width: 100%;
+      height: 220px; /* cambio: misma altura para imagenes y videos en grid */
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+
     .momMeta { display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:14px; color:#333 }
     .momText { font-size:13px; color:#444; max-height:48px; overflow:hidden; text-overflow:ellipsis; }
     .momActions { display:flex; gap:8px; align-items:center; margin-top:6px }
@@ -230,7 +255,7 @@
       /* hide desktop sidebar on small screens */
       .sidebar { display: none; }
       /* stickyMobile will be shown only when hamburger toggles 'open' */
-      .mainBox { margin: 12px; padding: 12px; }
+      .mainBox { margin: 12px; padding: 12px; padding-left: 12px; /* cambio: asegurar padding-left reducido */ }
 
       /* MOBILE: center feed content to avoid right-shift issue (added per request) */
       .mainBox { margin-left: auto; margin-right: auto; padding-left: 12px; padding-right: 12px; }
@@ -273,8 +298,8 @@
     .like-button i { transition: all 0.25s ease; color: #ff66cc; }
     .like-button.liked i { color: #ff0000; transform: scale(1.25); }
 
-    /* Prevent stickers overlapping grid: add left padding area */
-    .mainBox { padding-left: 46px; } /* leave room for sticker column visually */
+    /* Prevent stickers overlapping grid: leave room for sticker column on desktop only (moved into media min-width:900px above) */
+    /* .mainBox { padding-left: 46px; }  <-- moved to desktop-only rule */ 
 
     /* upload progress bar */
     .uploadProgressWrap { width:100%; margin-top:8px; background:#ffeef8; border-radius:8px; overflow:hidden; border:1px solid #ffd8ee; display:none; }
@@ -359,7 +384,7 @@
       <a href="https://www.instagram.com/mily_s_15?igsh=NDdrMHZ3OXpjN2Q=" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/INSTAGRAM.png" alt="Instagram"></a>
       <a href="https://www.tiktok.com/@milysnow_?_t=ZS-8zrK9lRIMsb&_r=1" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/TIK%20TOK.png" alt="TikTok"></a>
       <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
-      <!-- YOUTUBE agregado in stickyMobile before Pagos -->
+      <!-- YOUTUBE added in stickyMobile before Pagos -->
       <a href="https://m.youtube.com/@Milysnow_15" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/youtube-removebg-preview.png" alt="YouTube"></a>
       <!-- Payment sticker for mobile - opens popup -->
       <a href="#" id="mobilePaymentBtn" title="Pagos"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos"></a>
@@ -379,8 +404,7 @@
         <aside id="calendarAside" aria-live="polite">
           <div class="calendarHeader">
             <div class="monthTitle" id="monthTitle">Mes</div>
-          <!-- CONTINÚA EN BLOQUE 2/2 -->
-          <div class="calControls">
+                  <div class="calControls">
             <button id="prevMonth" class="btn secondary">◀</button>
             <button id="nextMonth" class="btn secondary">▶</button>
             <button id="addEventBtn" class="btn" style="display:none;margin-left:8px">Añadir evento</button>
@@ -680,20 +704,20 @@
     } else {
       document.getElementById('formTitle').innerText = 'Iniciar Sesión';
       newUserEl.style.display = 'none';
-      loginBtn.style.display = 'inline-block';
       registerBtn.style.display = 'none';
+      loginBtn.style.display = 'inline-block';
       toggleForm.innerText = '¿No tienes cuenta? Regístrate aquí';
     }
   });
 
   // ENTER key triggers current action (login or register)
-  document.addEventListener('keydown', (e)=>{
-    if(e.key === 'Enter'){
-      if(modalWrap.style.display === 'flex') return;
-      if(isRegister) doRegister();
-      else doLogin();
-    }
-  });
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter'){
+    if(modalWrap.style.display === 'flex') return;
+    if(isRegister) doRegister();
+    else doLogin();
+  }
+});
 
   // LOGIN
   async function doLogin(){
@@ -1112,7 +1136,7 @@
           if(isVideo){
             // For videos: show a video tag without controls in card (poster if available). Add play overlay and click => open modal with controls.
             const thumbPoster = document.createElement('div');
-            thumbPoster.style.height = '220px';
+            thumbPoster.style.height = '220px'; /* cambio: igual altura que .momCard img.momThumb (220px) */
             thumbPoster.style.background = '#000';
             thumbPoster.style.borderRadius = '8px';
             thumbPoster.style.display = 'flex';
@@ -1122,6 +1146,8 @@
             // try to show the thumbnail image if provided as m.thumbnailUrl else show first frame not available -> show play icon
             if(m.posterUrl){
               const img = document.createElement('img'); img.src = m.posterUrl; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; img.style.borderRadius='8px';
+              // mark this sub-element so CSS targets consistently
+              img.className = 'thumbPosterImg';
               thumbPoster.appendChild(img);
             } else {
               // fallback grey box
@@ -1276,6 +1302,8 @@
       const video = document.createElement('video');
       video.controls = true; video.playsInline = true; video.src = m.url; video.style.width='100%'; video.style.maxHeight='70vh';
       video.setAttribute('webkit-playsinline','');
+      // cambio: aplicar poster si existe (miniatura en el player)
+      if(m.posterUrl) video.setAttribute('poster', m.posterUrl);
       container.appendChild(video);
       // autoplay only on user interaction (we opened modal by click), start playback
       try { video.play().catch(()=>{}); } catch(e){}
@@ -1412,3 +1440,5 @@
 </script>
 </body>
 </html>
+
+
