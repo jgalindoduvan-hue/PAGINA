@@ -1,4 +1,69 @@
-eJS (open class) */
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MILI — Todo integrado</title>
+  <style>
+    /* ===== Reset + base ===== */
+    html,body{margin:0;height:100%;font-family:Arial, sans-serif;background:#ffffff00}
+    *{box-sizing:border-box}
+
+    /* ===== Login screen ===== */
+    #loginScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0d0221,#3a0ca3,#7209b7,#f72585);overflow:hidden}
+    #loginScreen::before{content:"";position:absolute;inset:0;background:url("https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/ChatGPT%20Image%2019%20sept%202025%2C%2010_17_37%20a.m..png") no-repeat center;background-size:contain;z-index:0}
+    #loginBox{position:absolute;top:180px;left:220px;background:rgba(0,0,0,.65);padding:15px;border-radius:12px;width:300px;box-shadow:0 0 15px rgba(0,0,0,.6);z-index:2}
+    #loginBox h2{color:#fff;margin:0 0 12px;font-size:20px}
+    #loginBox input{width:100%;padding:10px;margin:8px 0;border-radius:6px;border:none}
+    #loginBox button{background:#ff3399;color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer}
+    #loginBox button:hover{background:#e60073}
+    #toggleForm{color:#ff99cc;cursor:pointer;text-align:center;margin-top:8px}
+
+    /* ===== Header + nav ===== */
+    header{background:linear-gradient(90deg,#ff66cc,#ff3399);color:#fff;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:30}
+    header h1{margin:0;font-weight:700}
+    nav{display:flex;gap:10px;align-items:center}
+    nav img{height:72px;cursor:pointer;transition:transform .18s,filter .18s;filter:drop-shadow(0 0 3px #ff66cc);border-radius:8px}
+    nav img:hover{transform:scale(1.06) rotate(-1.5deg);animation:shake .36s}
+    @keyframes shake{0%{transform:translate(0) rotate(0)}25%{transform:translate(1px,-1px) rotate(-2deg)}50%{transform:translate(-1px,2px) rotate(1deg)}75%{transform:translate(2px,1px) rotate(-1deg)}100%{transform:translate(0) rotate(0)}}
+
+    /* Hamburger (mobile) */
+    .hamburger { display: none; width: 34px; height: 28px; flex-direction: column; justify-content: space-between; cursor: pointer; margin-right: 8px; }
+    .hamburger span { display:block; height:4px; background:white; border-radius:3px; }
+
+    /* Mobile overlay used by menu */
+    .mobileOverlay {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 120;
+    }
+    .mobileOverlay.open {
+      background: transparent; /* sin oscurecer */
+      pointer-events: auto;
+    }
+
+    /* Mobile menu (legacy, not used as primary mobile stickers) */
+    .mobileMenu {
+      position: fixed;
+      top: 50%;
+      left: 12px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      z-index: 2000;
+      transform: translateY(-50%);
+    }
+    .mobileMenu.open { display:flex; }
+    .mobileMenu img { width:56px; height:auto; border-radius:8px; cursor:pointer; }
+
+    /* Sticky icons for mobile - default hidden, will open only with hamburger */
+    .stickyMobile {
+      position: fixed;
+      left: 10px;
+      top: 120px; /* más abajo que la barra rosa */
+      display: none; /* ahora controlado por JS (open class) */
       flex-direction: column;
       gap: 18px;
       z-index: 1300; /* <- aumentado para que quede encima del overlay y no se cierre al pulsar */
