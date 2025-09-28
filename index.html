@@ -460,6 +460,7 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
       <a href="https://chat.whatsapp.com/CtcdiAwCKRmI0X2LIG0kO2?mode=ems_copy_t" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WHAT.png" alt="WhatsApp"></a>
       <a href="https://m.youtube.com/@Milysnow_15" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/youtube-removebg-preview.png" alt="YouTube"></a>
       <!-- Payment sticker for mobile - opens popup -->
+      <a href="https://m.youtube.com/@Milysnow_15" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/youtube-removebg-preview.png" alt="YouTube"></a>
       <a href="#" id="mobilePaymentBtn" title="Pagos"><img src="https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/pagos.png" alt="Pagos"></a>
     </div>
 
@@ -1205,31 +1206,18 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
             thumbWrap.appendChild(placeholder);
           } else {
             if(isVideo){
-              // For videos: show a video tag without controls in card (poster if available). Add play overlay and click => open modal with controls.
-              const thumbPoster = document.createElement('div');
-              thumbPoster.style.height = '220px';
-              thumbPoster.style.background = '#000';
-              thumbPoster.style.borderRadius = '8px';
-              thumbPoster.style.display = 'flex';
-              thumbPoster.style.alignItems = 'center';
-              thumbPoster.style.justifyContent = 'center';
-              thumbPoster.style.position = 'relative';
-              // try to show the thumbnail image if provided as m.thumbnailUrl else show first frame not available -> show play icon
-              if(m.posterUrl){
-                const img = document.createElement('img'); img.src = m.posterUrl; img.style.width='100%'; img.style.height='100%'; img.style.objectFit='cover'; img.style.borderRadius='8px';
-                thumbPoster.appendChild(img);
-              } else {
-                // fallback grey box
-                const box = document.createElement('div'); box.style.width='100%'; box.style.height='100%'; box.style.background='#333'; box.style.borderRadius='8px';
-                thumbPoster.appendChild(box);
-              }
-              // play overlay
-              const play = document.createElement('div'); play.className='playOverlay'; play.innerText='▶';
-              thumbPoster.appendChild(play);
-
-              thumbWrap.appendChild(thumbPoster);
-              // click to open modal player
-              thumbWrap.addEventListener('click', ()=> openMomentViewer(m));
+              const videoEl = document.createElement('video');
+              videoEl.src = m.url;
+              videoEl.muted = true;
+              videoEl.playsInline = true;
+              videoEl.preload = "metadata";
+              videoEl.style.width = "100%";
+              videoEl.style.height = "220px"; // mismo tamaño que las fotos
+              videoEl.style.objectFit = "cover";
+              videoEl.style.borderRadius = "8px";
+              if(m.posterUrl){ videoEl.poster = m.posterUrl; }
+              videoEl.addEventListener('click', ()=> openMomentViewer(m));
+              thumbWrap.appendChild(videoEl);
             } else {
               const img = document.createElement('img'); img.className='momThumb'; img.src = m.url;
               img.style.borderRadius = '8px';
