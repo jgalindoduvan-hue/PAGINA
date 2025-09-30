@@ -390,6 +390,92 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
   background: #000 !important;
 }
 
+
+/* === SORTEOS === */
+.sorteo-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.9);
+  
+  border-radius: 15px;
+  padding: 20px;
+  gap: 20px;
+  box-shadow: 0 0 20px rgba(255, 43, 146, 0.6);
+}
+
+.sorteo-col { flex: 1; min-width: 260px; }
+
+.ruleta-textual {
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+  color: #ff2b92;
+  margin: 20px 0;
+}
+
+@keyframes glowPulse {
+  0% { text-shadow: 0 0 8px #ff2b92, 0 0 16px #ff2b92; }
+  100% { text-shadow: 0 0 16px #ff2b92, 0 0 24px #ff2b92; }
+}
+
+.btn-admin {
+  background: #ff2b92;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.btn-admin:hover { background: #d81b78; }
+
+#videoContainer video { width: 100%; border-radius: 10px; }
+
+
+/* --- RAFFLE: participantes box + items --- */
+#listaParticipantes { list-style:none; padding:10px; margin:0; border:2px solid rgba(255,192,220,0.6); border-radius:10px; background:#fff; max-height:260px; overflow:auto; }
+#listaParticipantes::-webkit-scrollbar { width:10px; }
+#listaParticipantes::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#ff66cc,#d633ff); border-radius:8px; }
+.participant-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border:1px solid #ffe6f4; border-radius:8px; margin-bottom:8px; background:#fff; }
+.participant-item .name { font-weight:600; color:#222; }
+.participant-badge { font-weight:700; background: linear-gradient(90deg,#fff0f8,#ffd6ef); color:#b3006b; padding:4px 8px; border-radius:8px; margin-left:8px; box-shadow:0 4px 10px rgba(214,51,255,0.06); }
+
+/* neon breathing for winner */
+@keyframes breathe-neon {
+  0% { text-shadow: 0 0 6px rgba(255,102,204,0.5), 0 0 12px rgba(166,63,255,0.15); transform:scale(1); }
+  50% { text-shadow: 0 0 20px rgba(255,102,204,1), 0 0 36px rgba(166,63,255,0.6); transform:scale(1.04); }
+  100% { text-shadow: 0 0 6px rgba(255,102,204,0.5), 0 0 12px rgba(166,63,255,0.15); transform:scale(1); }
+}
+.neon-winner {
+  display:inline-block;
+  color:#ff4db8;
+  font-weight:800;
+  font-size:28px;
+  animation: breathe-neon 2s ease-in-out infinite;
+  margin: 10px auto;
+}
+/* hide admin-only controls by default; JS will show if admin */
+.raffle-admin-only { display:none; }
+
+
+/* Ajuste de tamaño del video sorteos */
+#videoContainer video {
+  width: 80% !important;
+  max-width: 360px !important;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  #videoContainer video {
+    width: 90% !important;
+    max-width: 280px !important;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -493,10 +579,44 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
       </div>
 
       <!-- SORTEO -->
-      <section id="sorteoSection" style="display:none;margin-top:18px">
-        <h2>Sorteos</h2>
-        <p>Aquí estará la ruleta del sorteo (sección separada).</p>
-      </section>
+      
+<section id="sorteoSection" style="display:none;margin-top:18px">
+
+<div class="sorteo-container">
+    <!-- Columna izquierda -->
+    <div class="sorteo-col izquierda">
+      <h3>Participantes</h3>
+      <ul id="listaParticipantes"></ul>
+      <button id="btnParticipar" class="btn">Participar</button>
+    </div>
+
+    <!-- Columna centro -->
+    <div class="sorteo-col centro">
+      <h3>Ganador</h3>
+      <div id="ruletaGanador" class="ruleta-textual">---</div>
+      <div style="text-align:center;margin-top:12px">
+        <button id="btnElegirGanador" class="btn-admin raffle-admin-only">Elegir ganador</button>
+        <button id="btnReiniciarSorteo" class="btn-admin raffle-admin-only">Reiniciar sorteo</button>
+      </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div class="sorteo-col derecha">
+      <h3></h3>
+      
+      <div id="videoContainer" style="border:none; border-radius:10px; padding:8px; background:#fff; min-height:220px; display:flex; align-items:center; justify-content:center; flex-direction:column;">
+        <p id="sinVideo">Sin video</p>
+        <video id="raffleVideo" style="display:none;width:100%;border-radius:8px;" autoplay loop muted playsinline></video>
+        <div class="video-controls-admin raffle-admin-only" style="margin-top:10px; text-align:center;">
+          <input type="file" id="fileVideoSorteo" accept="video/*">
+          <button id="btnSubirVideo" class="btn-admin">Subir video</button>
+          <button id="btnQuitarVideo" class="btn-admin">Quitar video</button>
+        </div>
+      </div>
+
+  </div>
+</section>
+
 
       <!-- MOMENTOS -->
       <section id="momentosSection" style="display:none;margin-top:18px">
@@ -713,6 +833,8 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
     let eventsCache = []; // all events listened in real time
     let currentUser = null;
     let currentUserRole = 'user';
+        try{ updateRaffleAdminControls(); }catch(e){}
+
     let currentUserDoc = null; // firestore user doc
     let userCanPost = true;
 
@@ -1022,6 +1144,8 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
         } catch(err){ console.error('Error leyendo/creando user doc:', err); }
 
         currentUserRole = role;
+        try{ updateRaffleAdminControls(); }catch(e){}
+
         loginScreen.style.display='none';
         mainContent.style.display='block';
         displayName.innerText = `Hola, ${username} 👋`;
@@ -1048,6 +1172,8 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
         stopUsersListener();
         stopMomentsListener();
         currentUserRole = 'user';
+        try{ updateRaffleAdminControls(); }catch(e){}
+
         currentUserDoc = null;
         userCanPost = true;
       }
@@ -1141,6 +1267,191 @@ header { margin-top: 0 !important; padding-top: 0 !important; border-top: none !
         alert('No se pudo copiar automáticamente. Selecciona y copia manualmente: ' + NEQUI_NUMBER);
       }
     });
+
+    
+
+
+// ================== SORTEOS ==================
+const listaParticipantes = document.getElementById("listaParticipantes");
+const btnParticipar = document.getElementById("btnParticipar");
+const btnElegirGanador = document.getElementById("btnElegirGanador");
+const btnReiniciarSorteo = document.getElementById("btnReiniciarSorteo");
+const ruletaGanador = document.getElementById("ruletaGanador");
+const fileVideoSorteo = document.getElementById("fileVideoSorteo");
+const btnSubirVideo = document.getElementById("btnSubirVideo");
+const btnQuitarVideo = document.getElementById("btnQuitarVideo");
+const videoContainer = document.getElementById("videoContainer");
+const sinVideo = document.getElementById("sinVideo");
+
+// helper: show/hide admin controls for raffle
+function updateRaffleAdminControls(){
+  try {
+    document.querySelectorAll('.raffle-admin-only').forEach(el=> {
+      el.style.display = (currentUserRole === 'admin') ? 'inline-block' : 'none';
+    });
+  } catch(e){ console.error('Error actualizando controles admin raffle', e); }
+}
+
+// ensure called at least once on load
+updateRaffleAdminControls && updateRaffleAdminControls();
+
+// ================= PARTICIPAR =================
+btnParticipar?.addEventListener("click", async () => {
+  if (!currentUser) return alert("Inicia sesión para participar");
+
+  const uid = currentUser.uid;
+  const username = currentUserDoc?.username || currentUser.email.split("@")[0];
+  const suscriptor = currentUserDoc?.suscriptor || false;
+
+  // Verificar si ya participó (comprobación por uid)
+  const querySnap = await getDocs(collection(db, "raffle_participants"));
+  const yaParticipo = querySnap.docs.some(d => d.data().uid === uid);
+  if (yaParticipo) return alert("Ya estás participando en este sorteo");
+
+  // Agregar solo 1 registro, aunque suscriptor tenga doble chance en la ruleta
+  await addDoc(collection(db, "raffle_participants"), {
+    uid,
+    username,
+    suscriptor,
+    createdAt: serverTimestamp()
+  });
+  alert("¡Participación registrada!");
+});
+
+// ================= LISTA EN TIEMPO REAL =================
+onSnapshot(collection(db, "raffle_participants"), snap => {
+  if(!listaParticipantes) return;
+  listaParticipantes.innerHTML = "";
+  snap.forEach(docu => {
+    const data = docu.data();
+    const li = document.createElement("li");
+    li.className = 'participant-item';
+    const nameSpan = document.createElement('span'); nameSpan.className = 'name'; nameSpan.textContent = data.username || (data.email || 'Usuario');
+    const rightWrap = document.createElement('div');
+    if(data.suscriptor){
+      const b = document.createElement('span'); b.className = 'participant-badge'; b.textContent = '💎 Suscriptor';
+      rightWrap.appendChild(b);
+    }
+    li.appendChild(nameSpan);
+    li.appendChild(rightWrap);
+    listaParticipantes.appendChild(li);
+  });
+});
+
+// ================= ELEGIR GANADOR =================
+btnElegirGanador?.addEventListener("click", async () => {
+  if(currentUserRole !== 'admin') return alert('Solo administradores pueden elegir ganador');
+  const snapshot = await getDocs(collection(db, "raffle_participants"));
+  const participantesDocs = snapshot.docs.map(d => d.data());
+  if (participantesDocs.length === 0) return alert("No hay participantes");
+
+  // Crear arreglo de nombres, duplicando a los suscriptores
+  let participantes = [];
+  participantesDocs.forEach(d => {
+    participantes.push(d.username);
+    if(d.suscriptor){ participantes.push(d.username); } // doble chance
+  });
+
+  let i = 0;
+  ruletaGanador.classList.remove('neon-winner');
+  const interval = setInterval(() => {
+    ruletaGanador.textContent = participantes[i];
+    i = (i + 1) % participantes.length;
+  }, 80);
+
+  setTimeout(async () => {
+    clearInterval(interval);
+    const ganador = participantes[Math.floor(Math.random() * participantes.length)];
+    ruletaGanador.textContent = ganador;
+    ruletaGanador.classList.add('neon-winner');
+    try { await setDoc(doc(db, "raffle_winner", "actual"), { ganador }); } catch(e){ console.error(e); }
+  }, 3500);
+});
+
+// ================= REINICIAR =================
+btnReiniciarSorteo?.addEventListener("click", async () => {
+  if(currentUserRole !== 'admin') return alert('Solo administradores pueden reiniciar el sorteo');
+  if (!confirm("¿Reiniciar sorteo?")) return;
+  const snap = await getDocs(collection(db, "raffle_participants"));
+  for(const d of snap.docs){
+    try { await deleteDoc(doc(db, "raffle_participants", d.id)); } catch(e){ console.error(e); }
+  }
+  try { await deleteDoc(doc(db, "raffle_winner", "actual")); } catch(e) { /* ignore */ }
+  ruletaGanador.textContent = "---";
+  ruletaGanador.classList.remove('neon-winner');
+  alert("Sorteo reiniciado");
+});
+
+
+// --- DEFAULT RAFFLE VIDEO (fallback when no video in Firestore) ---
+const DEFAULT_RAFFLE_VIDEO_URL = 'https://raw.githubusercontent.com/jgalindoduvan-hue/MILY/main/WhatsApp%20Video%202025-09-30%20at%2007.32.07.mp4';
+
+// ================= VIDEO =================
+btnSubirVideo?.addEventListener("click", () => fileVideoSorteo.click());
+
+fileVideoSorteo?.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const refPath = `sorteos/video_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9\.\-_]/g,'_')}`;
+  const refVid = sref(storage, refPath);
+  try {
+    await uploadBytes(refVid, file);
+    const url = await getDownloadURL(refVid);
+    await setDoc(doc(db, "raffle_video", "actual"), { url, path: refPath, createdAt: serverTimestamp() });
+  } catch(err){ console.error('Error subiendo video:', err); alert('Error subiendo video: '+err.message); }
+});
+
+onSnapshot(doc(db, "raffle_video", "actual"), async (docSnap) => {
+  if(!videoContainer) return;
+  videoContainer.innerHTML = '';
+  if (docSnap && docSnap.exists()) {
+    const { url } = docSnap.data();
+    const vid = document.createElement("video");
+    vid.src = url;
+    vid.autoplay = true;
+    vid.loop = true;
+    vid.controls = false;
+    vid.muted = true; // muted to allow autoplay in most browsers
+    vid.playsInline = true;
+    vid.style.width = "100%";
+    vid.style.height = "100%";
+    vid.style.objectFit = "contain";
+    videoContainer.appendChild(vid);
+  } else if (typeof DEFAULT_RAFFLE_VIDEO_URL === "string" && DEFAULT_RAFFLE_VIDEO_URL) {
+    // fallback to the default GitHub-hosted video when Firestore has no raffle_video
+    const vid = document.createElement("video");
+    vid.src = DEFAULT_RAFFLE_VIDEO_URL;
+    vid.autoplay = true;
+    vid.loop = true;
+    vid.controls = false;
+    vid.muted = true;
+    vid.playsInline = true;
+    vid.style.width = "100%";
+    vid.style.height = "100%";
+    vid.style.objectFit = "contain";
+    videoContainer.appendChild(vid);
+  } else {
+    videoContainer.innerHTML = '<p id="sinVideo">Sin video</p>';
+  }
+});
+
+btnQuitarVideo?.addEventListener("click", async () => {
+  if(currentUserRole !== 'admin') return alert('Solo administradores pueden quitar el video');
+  if(!confirm('¿Quitar video del sorteo?')) return;
+  const videoDocRef = doc(db,'raffle_video','actual');
+  try {
+    const vdoc = await getDoc(videoDocRef);
+    if(vdoc.exists()){
+      const data = vdoc.data();
+      if(data.path){
+        try { await deleteObject(sref(storage, data.path)); } catch(e){ console.error('Error eliminando archivo storage:', e); }
+      }
+      await deleteDoc(videoDocRef);
+    }
+  } catch(e){ console.error('Error quitando video', e); }
+  videoContainer.innerHTML = '<p id="sinVideo">Sin video</p>';
+});
+
 
     // ========================= MOMENTS: Storage + Firestore logic =========================
 
