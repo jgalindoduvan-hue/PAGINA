@@ -1276,6 +1276,26 @@ const btnParticipar = document.getElementById("btnParticipar");
 const btnElegirGanador = document.getElementById("btnElegirGanador");
 const btnReiniciarSorteo = document.getElementById("btnReiniciarSorteo");
 const ruletaGanador = document.getElementById("ruletaGanador");
+
+// ================= ESCUCHAR GANADOR EN TIEMPO REAL =================
+onSnapshot(doc(db, "raffle_winner", "actual"), (docSnap) => {
+  try {
+    if (!ruletaGanador) return;
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      const ganador = data?.ganador;
+      ruletaGanador.textContent = ganador && ganador !== '---' ? ganador : '---';
+      if (ganador && ganador !== '---') {
+        ruletaGanador.classList.add('neon-winner');
+      } else {
+        ruletaGanador.classList.remove('neon-winner');
+      }
+    } else {
+      ruletaGanador.textContent = '---';
+      ruletaGanador.classList.remove('neon-winner');
+    }
+  } catch (e) { console.error('raffle_winner listener error', e); }
+});
 const fileVideoSorteo = document.getElementById("fileVideoSorteo");
 const btnSubirVideo = document.getElementById("btnSubirVideo");
 const btnQuitarVideo = document.getElementById("btnQuitarVideo");
